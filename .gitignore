@@ -1,0 +1,5 @@
+# Ignore TypeScript build output directory
+/dist
+
+# Ignore Node.js runtime artifacts
+node_modules/
