@@ -12,7 +12,7 @@ const updateParserState = (
   oldState: ParserState,
   index: number,
   result: ParserState['result']
-) => ({
+): ParserState => ({
   ...oldState,
   index,
   result,
@@ -21,12 +21,15 @@ const updateParserState = (
 const updateParserResult = (
   oldState: ParserState,
   result: ParserState['result']
-) => ({
+): ParserState => ({
   ...oldState,
   result,
 })
 
-const updateParserError = (oldState: ParserState, errorMsg: string) => ({
+const updateParserError = (
+  oldState: ParserState,
+  errorMsg: string
+): ParserState => ({
   ...oldState,
   isError: true,
   error: errorMsg,
@@ -44,7 +47,7 @@ const str =
     if (slicedTarget.length === 0) {
       return updateParserError(
         state,
-        `str: Tried to match ${s} but got unexpected end of input`
+        `str: Tried to match '${s}' but got unexpected end of input`
       )
     }
 
@@ -54,10 +57,10 @@ const str =
 
     return updateParserError(
       state,
-      `str: Tried to match ${s}, but got ${targetString.slice(
+      `str: Tried to match '${s}', but got '${targetString.slice(
         index,
         index + targetString.length
-      )}`
+      )}'`
     )
   }
 
@@ -74,7 +77,7 @@ const sequenceOf =
       results.push(nextState.result)
     }
 
-    return updateParserResult(state, results)
+    return updateParserResult(nextState, results)
   }
 
 const run = (parser: Parser, targetString: string) => {
