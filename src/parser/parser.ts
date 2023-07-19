@@ -1,6 +1,11 @@
 import { InputType, InputTypes } from '../input-types'
 import { encoder } from '../util'
 
+/**
+ * Defines the internal structure of the parser result
+ * @template T The result type
+ * @template E The error type
+ */
 export type InternalResultType<T, E> = {
   isError: boolean
   error: E
@@ -9,9 +14,9 @@ export type InternalResultType<T, E> = {
 }
 
 /**
- * Interface representing the state of the parser.
- * It contains the input target to be parsed, the current index,
- * the result of the parsing (or null if not done yet), and potential errors.
+ * ParserState represents the state of the parser.
+ * @template T The type of the result
+ * @template E The type of the error
  */
 export type ParserState<T, E> = {
   dataView: DataView
@@ -19,21 +24,35 @@ export type ParserState<T, E> = {
 } & InternalResultType<T, E>
 
 /**
- * The function type used to transform one parser state into another.
- * It takes a parser state with a result of type T and returns a state with a result of type U.
+ * StateTransformerFn is a function type used to transform one parser state into another.
+ * @template T The type of the result
+ * @template E The type of the error, defaults to 'any'
  */
 export type StateTransformerFn<T, E = any> = (
   state: ParserState<any, any>
 ) => ParserState<T, E>
 
+/**
+ * ResultType represents a type that is either an error or a success.
+ * @template T The result type
+ * @template E The error type
+ */
 export type ResultType<T, E> = Err<E> | Ok<T>
 
+/**
+ * Represents an error in parsing.
+ * @template E The error type
+ */
 export type Err<E> = {
   isError: true
   error: E
   index: number
 }
 
+/**
+ * Represents a successful parse result.
+ * @template T The result type
+ */
 export type Ok<T> = {
   isError: false
   result: T
@@ -75,7 +94,9 @@ const createParserState = (
 }
 
 /**
- * Main Parser class, represents a parser with a state transformation function.
+ * Represents a parser which transforms input data to the required structure
+ * @template T The result type
+ * @template E The error type
  */
 export class Parser<T, E = string> {
   p: StateTransformerFn<T, E> // The state transformer function for this parser.
@@ -114,7 +135,7 @@ export class Parser<T, E = string> {
 
   /**
    * Transforms the parser into a new parser that applies a function to the result of the original parser.
-   * @param fn A function that takes a result of type T and returns a result of type U.
+   * @param fn A function that takes a result of type T and returns a result of type T2.
    * @returns A new Parser instance that applies the function `fn` to the result.
    */
   map<T2>(fn: (oldRes: T) => T2): Parser<T2, E> {
