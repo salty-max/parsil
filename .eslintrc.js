@@ -30,5 +30,6 @@ module.exports = {
     'prettier/prettier': 0,
     'jest/no-disabled-tests': 0,
     '@typescript-eslint/no-explicit-any': 0,
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
   },
 }
