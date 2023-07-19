@@ -4,7 +4,7 @@ import { getCharacterLength, getNextCharWidth, getUtf8Char } from '../../util'
 export const char = (c: string): Parser<string> => {
   if (!c || getCharacterLength(c) !== 1) {
     throw new TypeError(
-      `char must be called with a single character, but got ${c}`
+      `char must be called with a single character, but got '${c}'`
     )
   }
 

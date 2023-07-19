@@ -34,4 +34,10 @@ describe('str', () => {
         "ParseError (position: 0): Tried to match 'foo', but got unexpected end of input",
     })
   })
+
+  it('should throw error if target is empty', () => {
+    expect(() => str('')).toThrow(
+      `str must be called with a string with length > 1, but got ''`
+    )
+  })
 })

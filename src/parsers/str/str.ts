@@ -14,7 +14,7 @@ import { encoder, getCharacterLength, getString } from '../../util'
 export const str = (s: string): Parser<string> => {
   if (!s || getCharacterLength(s) < 1) {
     throw new TypeError(
-      `str must be called with a string with length > 1, but got ${s}`
+      `str must be called with a string with length > 1, but got '${s}'`
     )
   }
 
