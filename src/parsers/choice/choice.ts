@@ -1,4 +1,4 @@
-import { Parser, ParserState } from '../../parser'
+import { Parser, ParserState, updateError } from '../../parser'
 
 /**
  * Tries to parse input with the first parser in a list that succeeds.
@@ -12,19 +12,20 @@ export const choice = (parsers: Array<Parser<any>>): Parser<any> => {
   if (parsers.length === 0)
     throw new Error('choice requires a non-empty list of parsers')
 
-  return new Parser((state): ParserState<any, any> => {
+  return new Parser((state): ParserState<any, string> => {
     if (state.isError) return state
 
-    let error = null
+    let nextState = state
+
     for (const p of parsers) {
       const out = p.p(state)
       if (!out.isError) return out
-
-      if (error === null || (error && out.index > error.index)) {
-        error = out
-      }
+      nextState = out
     }
 
-    return error as ParserState<any, any>
+    return updateError(
+      nextState,
+      `ParseError (position: ${state.index}): Unable to match with any parser`
+    )
   })
 }

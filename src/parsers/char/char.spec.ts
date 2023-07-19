@@ -34,4 +34,10 @@ describe('char', () => {
         "ParseError (position: 0): Expected '@', but got unexpected end of input",
     })
   })
+
+  it('should throw error if target is not a single character', () => {
+    expect(() => char('')).toThrow(
+      `char must be called with a single character, but got ''`
+    )
+  })
 })

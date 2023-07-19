@@ -17,10 +17,12 @@ describe('choice', () => {
     const result = parser.run('@')
 
     assertIsError(result)
-    expect(result.error).toBe(`ParseError (position: 0): Expected digits`)
+    expect(result.error).toBe(
+      `ParseError (position: 0): Unable to match with any parser`
+    )
   })
 
-  test('It should throw error if parsers array is empty', () => {
+  it('should throw error if parsers array is empty', () => {
     expect(() => choice([])).toThrow(
       'choice requires a non-empty list of parsers'
     )
