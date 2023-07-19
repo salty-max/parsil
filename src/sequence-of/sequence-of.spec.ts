@@ -7,7 +7,7 @@ describe('sequenceOf', () => {
     const res = parser.run('foobar')
 
     expect(res).toStrictEqual({
-      targetString: 'foobar',
+      target: 'foobar',
       index: 6,
       result: ['foo', 'bar'],
       isError: false,
@@ -19,7 +19,7 @@ describe('sequenceOf', () => {
     const res = parser.run('foo bar')
 
     expect(res).toStrictEqual({
-      targetString: 'foo bar',
+      target: 'foo bar',
       index: 3,
       result: ['foo', null],
       isError: true,
