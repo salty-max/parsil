@@ -134,6 +134,31 @@ export class Parser<T, E = string> {
   }
 
   /**
+   * Takes an input to parse, and two functions to handle the results of parsing:
+   * an error function that is called when parsing fails, and a success function that is called when parsing is successful.
+   * The fork method will run the parser on the input and, depending on the outcome, call the appropriate function.
+   *
+   * @param target The input to be parsed.
+   * @param errorFn A function that is called when parsing fails. It receives the error and the parser state as arguments.
+   * @param successFn A function that is called when parsing is successful. It receives the result and the parser state as arguments.
+   * @returns The result of calling either the `errorFn` or `successFn`, depending on whether parsing was successful or not.
+   */
+  fork<F>(
+    target: InputType,
+    errorFn: (error: E, parsingState: ParserState<T, E>) => F,
+    successFn: (result: T, parsingState: ParserState<T, E>) => F
+  ) {
+    const state = createParserState(target)
+    const newState = this.p(state)
+
+    if (newState.isError) {
+      return errorFn(newState.error, newState)
+    }
+
+    return successFn(newState.result, newState)
+  }
+
+  /**
    * Transforms the parser into a new parser that applies a function to the result of the original parser.
    * @param fn A function that takes a result of type T and returns a result of type T2.
    * @returns A new Parser instance that applies the function `fn` to the result.
