@@ -17,7 +17,7 @@ describe('digits', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error: 'ParseError (position: 0): Expected digits',
+      error: 'ParseError @ index 0 -> digits: Expected digits',
     })
   })
 
@@ -27,7 +27,7 @@ describe('digits', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error: 'ParseError (position: 0): Expected digits',
+      error: 'ParseError @ index 0 -> digits: Expected digits',
     })
   })
 })

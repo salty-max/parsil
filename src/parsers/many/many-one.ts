@@ -1,4 +1,5 @@
-import { Parser, updateError, updateResult } from '../../parser'
+import { Parser, updateError } from '../../parser'
+import { many } from './many'
 
 /**
  * Applies a parser one or more times until it fails, and returns an array of the results.
@@ -11,31 +12,15 @@ export const manyOne = function manyOne<T>(parser: Parser<T>): Parser<T[]> {
   return new Parser((state) => {
     if (state.isError) return state
 
-    const results = []
-    let done = false
-    let nextState = state
+    const out = many(parser).p(state)
 
-    while (!done) {
-      const out = parser.p(nextState)
-
-      if (!out.isError) {
-        nextState = out
-        results.push(nextState.result)
-        if (nextState.index >= nextState.dataView.byteLength) {
-          done = true
-        }
-      } else {
-        done = true
-      }
+    if (out.result.length) {
+      return out
     }
 
-    if (results.length === 0) {
-      return updateError(
-        state,
-        `ParseError (position: ${state.index}): Unable to match any input using parser`
-      )
-    }
-
-    return updateResult(nextState, results)
+    return updateError(
+      state,
+      `ParseError @ index ${state.index} -> manyOne: Expected to match at least one value`
+    )
   })
 }

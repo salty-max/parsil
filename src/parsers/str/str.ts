@@ -30,7 +30,7 @@ export const str = (s: string): Parser<string> => {
     if (remainingBytes < encodedStr.byteLength) {
       return updateError(
         state,
-        `ParseError (position: ${index}): Tried to match '${s}', but got unexpected end of input`
+        `ParseError @ index ${index} -> str: Tried to match '${s}', but got unexpected end of input`
       )
     }
 
@@ -41,7 +41,7 @@ export const str = (s: string): Parser<string> => {
 
     return updateError(
       state,
-      `ParseError (position: ${index}): Tried to match '${s}', but got '${stringAtIndex}...'`
+      `ParseError @ index ${index} -> str: Tried to match '${s}', but got '${stringAtIndex}...'`
     )
   })
 }

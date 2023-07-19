@@ -17,7 +17,7 @@ describe('manyOne', () => {
 
     assertIsError(result)
     expect(result.error).toBe(
-      `ParseError (position: 0): Unable to match any input using parser`
+      `ParseError @ index 0 -> manyOne: Expected to match at least one value`
     )
   })
 

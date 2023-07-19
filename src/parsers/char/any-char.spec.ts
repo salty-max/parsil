@@ -20,7 +20,7 @@ describe('char', () => {
       index: 0,
       isError: true,
       error:
-        'ParseError (position: 0): Expected a character, but got unexpected end of input',
+        'ParseError @ index 0 -> anyChar: Expected a character, but got unexpected end of input',
     })
   })
 })

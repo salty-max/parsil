@@ -47,7 +47,7 @@ describe('Parser', () => {
       parser.fork('bar', errorFn, successFn)
 
       expect(errorFn).toHaveBeenCalledWith(
-        `ParseError (position: 0): Tried to match 'foo', but got 'bar...'`,
+        `ParseError @ index 0 -> str: Tried to match 'foo', but got 'bar...'`,
         expect.anything()
       )
       expect(successFn).not.toHaveBeenCalled()

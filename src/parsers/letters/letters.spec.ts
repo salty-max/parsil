@@ -17,7 +17,7 @@ describe('letters', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error: 'ParseError (position: 0): Expected letters',
+      error: 'ParseError @ index 0 -> letters: Expected letters',
     })
   })
 
@@ -27,7 +27,7 @@ describe('letters', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error: 'ParseError (position: 0): Expected letters',
+      error: 'ParseError @ index 0 -> letters: Expected letters',
     })
   })
 })
