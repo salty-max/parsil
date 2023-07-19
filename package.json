@@ -1,10 +1,10 @@
 {
-  "name": "parcil",
+  "name": "parsil",
   "version": "0.1.0",
   "description": "A parser-combinator written in Typescript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "repository": "https://github.com/salty-max/parcil",
+  "repository": "https://github.com/salty-max/parsil",
   "author": "Maxime Blanc",
   "license": "MIT",
   "scripts": {
