@@ -1,12 +1,21 @@
 import { Parser, ParserState, updateError } from '../../parser'
 
 /**
- * Tries to parse input with the first parser in a list that succeeds.
- * If all parsers fail, it fails with the last and furthest error.
+ * `choice` is a parser combinator that tries each parser in a given list of parsers, in order,
+ * until one succeeds. If a parser succeeds, it consumes the relevant input and returns the result.
+ * If no parser succeeds, `choice` fails with an error message.
+ * An error is also thrown if `choice` is called without a list or with an empty list.
  *
- * @param parsers An array of parsers to apply to the input.
- * @throws Error If the parsers array is empty.
- * @returns A new Parser instance that will try each parser in order until one succeeds.
+ * @example
+ * const parser = choice([str("abc"), str("123")])
+ * parser.run("abc123")  // returns "abc"
+ * parser.run("123abc")  // returns "123"
+ * parser.run("xyz")  // returns "ParseError @ index 0 -> choice: Unable to match with any parser"
+ * choice([])  // throws `choice requires a non-empty list of parsers`
+ *
+ * @param parsers The list of parsers to try in order.
+ * @throws {Error} If `parsers` is an empty list.
+ * @returns {Parser<any>} A parser that applies the first successful parser in `parsers`.
  */
 export const choice = (parsers: Array<Parser<any>>): Parser<any> => {
   if (parsers.length === 0)

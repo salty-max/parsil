@@ -1,12 +1,18 @@
 import { Parser, updateResult } from '../../parser/parser'
 
 /**
- * Creates a new parser that tries to match a sequence of parsers.
- * The resulting parser matches only if all the provided parsers match in the given order.
- * If any parser fails, the resulting parser will also fail.
+ * `sequenceOf` is a parser combinator that accepts an array of parsers and applies them
+ * in sequence to the input. If all parsers succeed, it returns an `Ok` result with an array
+ * of their results and the next position in the input. If any parser fails, it fails immediately
+ * and returns the error state of that parser.
  *
- * @param parsers - An array of Parser instances that will be matched in sequence.
- * @returns A new Parser instance that matches a sequence of the provided parsers.
+ * @example
+ * const parser = sequenceOf([str("abc"), str("123")])
+ * parser.run("abc123xyz")  // returns { isError: false, result: ["abc", "123"], index: 6 }
+ * parser.run("xyzabc123")  // returns { isError: true, error: "ParseError @ index 0 -> str: Tried to match 'abc', but got 'xyz...'", index: 0 }
+ *
+ * @param parsers An array of parsers to apply in sequence.
+ * @returns {Parser<any>} A parser that applies `parsers` in sequence.
  */
 export const sequenceOf = (parsers: Array<Parser<any>>): Parser<any> =>
   new Parser((state) => {

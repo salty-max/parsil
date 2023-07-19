@@ -7,9 +7,20 @@ import {
 import { encoder, getCharacterLength, getString } from '../../util'
 
 /**
- * Generates a parser that matches a specific string `s` in the input.
- * @param s - The string that the generated parser will try to match.
- * @returns A Parser instance that matches the string `s`.
+ * `str` is a parser that tries to match a given input string `s` against its input.
+ * If the input starts with `s`, it returns an `Ok` result with `s` as the result and the next position in the input.
+ * Otherwise, it fails and returns an `Err` with an error message indicating where the mismatch occurred.
+ * An error is also thrown if `str` is called without a string or with an empty string.
+ *
+ * @example
+ * const parser = str("abcd")
+ * parser.run("abcd1234")  // returns { isError: false, result: "abcd", index: 4 }
+ * parser.run("1234abcd")  // returns { isError: true, error: "ParseError @ index 0 -> str: Tried to match 'abcd', but got '1234...'", index: 0 }
+ * str("")  // throws `str must be called with a string with length > 1, but got ''`
+ *
+ * @param s The string to match against the input.
+ * @throws {TypeError} If `s` is not a string or is an empty string.
+ * @return {Parser<string>} A parser that tries to match the input against `s`.
  */
 export const str = (s: string): Parser<string> => {
   if (!s || getCharacterLength(s) < 1) {

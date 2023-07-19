@@ -2,29 +2,24 @@ import { Parser } from '../../parser/parser'
 import { sequenceOf } from '../sequence-of'
 
 /**
- * Higher-order function that creates a parser that looks for a specific pattern
- * where a piece of data is enclosed by two other pieces of data.
- * It takes two parsers for the left and right boundaries and returns a function that
- * takes another parser for the content between these boundaries.
- * It then applies these parsers in sequence using the `sequenceOf` parser.
- * The result of this function is the result of the content parser.
- *
- * @typeParam L - The result type of the left boundary parser.
- * @typeParam T - The result type of the content parser.
- * @typeParam R - The result type of the right boundary parser.
- *
- * @param leftParser - The parser for the left boundary.
- * @param rightParser - The parser for the right boundary.
- *
- * @returns A function that takes a parser for the content and returns a new parser
- *          that parses a sequence of left boundary, content, and right boundary,
- *          and yields the result of the content parser.
+ * `between` is a parser combinator that matches the content between two other parsers, `leftParser` and `rightParser`.
+ * It applies the `leftParser` and `rightParser` in sequence and then applies the `contentParser` to match the content in between.
+ * It returns the result of the `contentParser` and discards the results of the `leftParser` and `rightParser`.
  *
  * @example
- *   // A parser that parses strings enclosed in ""
- *   const stringParser = between(char(`"`), char(`"`))(letters));
- *   const result = stringParser.run(`"HelloWorld"`);
- *   console.log(result.result);  // Prints: "HelloWorld"
+ * const parser = between(str("("), str(")"))(letters)
+ * parser.run("(abc)")  // returns "abc"
+ * parser.run("(123)")  // returns "ParseError @ index 0 -> between: Expected '('"
+ * parser.run("abc")  // returns "ParseError @ index 0 -> between: Expected '('"
+ *
+ * @template L The type of result that the `leftParser` produces.
+ * @template T The type of result that the `contentParser` produces.
+ * @template R The type of result that the `rightParser` produces.
+ *
+ * @param leftParser The parser that matches the left boundary.
+ * @param rightParser The parser that matches the right boundary.
+ * @param contentParser The parser that matches the content between the left and right boundaries.
+ * @returns {Parser<T>} A parser that matches the content between the left and right boundaries.
  */
 export const between =
   <L, T, R>(leftParser: Parser<L>, rightParser: Parser<R>) =>

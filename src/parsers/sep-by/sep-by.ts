@@ -1,7 +1,7 @@
 import { Parser, ParserState, updateResult } from '../../parser'
 
 /**
- * Creates a parser that matches zero or more occurrences of a value, separated by a given separator.
+ * `sepBy` is a parser that matches zero or more occurrences of a value, separated by a given separator.
  * It returns an array of values that were separated by the separator.
  * If the separator does not occur in the input, the parser returns an empty array.
  *

@@ -1,11 +1,20 @@
 import { Parser, updateResult } from '../../parser'
 
 /**
- * Applies a parser zero or more times until it fails, and returns an array of the results.
- * It does not consume any input if the parser fails on the first try.
+ * `many` is a parser combinator that applies a given parser zero or more times.
+ * It collects the results of each successful parse into an array, and stops
+ * when the parser can no longer match the input.
+ * It doesn't fail when the parser doesn't match the input at all; instead, it returns an empty array.
  *
- * @param parser The parser to apply to the input.
- * @returns A new Parser instance that applies the given parser as many times as possible.
+ * @example
+ * const parser = many(str("abc"))
+ * parser.run("abcabcabcxyz")  // returns ["abc", "abc", "abc"]
+ * parser.run("xyzabcabcabc")  // returns []
+ *
+ * @template T The type of result that the parser will produce.
+ *
+ * @param parser The parser to apply zero or more times.
+ * @returns {Parser<T[]>} A parser that applies `parser` zero or more times.
  */
 export const many = function many<T>(parser: Parser<T>): Parser<T[]> {
   return new Parser((state) => {
