@@ -1,9 +1,8 @@
+import { choice } from './parsers/choice'
+import { digits } from './parsers/digits'
 import { letters } from './parsers/letters'
-import { sequenceOf } from './parsers/sequence-of'
-import { str } from './parsers/str'
+import { many } from './parsers/many'
 
-const parser = sequenceOf([str('hello'), letters]).map((res) => ({
-  value: res,
-}))
+const parser = many(choice([digits, letters]))
 
-console.log(parser.run('helloworld'))
+console.log(parser.run('123abc'))

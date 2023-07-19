@@ -15,16 +15,13 @@ export const choice = (parsers: Array<Parser<any>>): Parser<any> => {
   return new Parser((state): ParserState<any, string> => {
     if (state.isError) return state
 
-    let nextState = state
-
     for (const p of parsers) {
       const out = p.p(state)
       if (!out.isError) return out
-      nextState = out
     }
 
     return updateError(
-      nextState,
+      state,
       `ParseError (position: ${state.index}): Unable to match with any parser`
     )
   })

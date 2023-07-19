@@ -21,6 +21,7 @@ export const many = function many<T>(parser: Parser<T>): Parser<T[]> {
       if (!out.isError) {
         nextState = out
         results.push(nextState.result)
+
         if (nextState.index >= nextState.dataView.byteLength) {
           done = true
         }
