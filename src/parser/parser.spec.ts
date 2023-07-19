@@ -1,4 +1,5 @@
 import { InputTypes } from '../input-types'
+import { str } from '../parsers/str'
 import { assertIsError, assertIsOk } from '../util'
 import {
   Parser,
@@ -24,6 +25,33 @@ describe('Parser', () => {
     assertIsError(result)
     expect(isError(result)).toBe(true)
     expect(result.error).toBe('Error occurred')
+  })
+
+  describe('Parser.fork', () => {
+    it('should call the success function when parsing is successful', () => {
+      const successFn = jest.fn()
+      const errorFn = jest.fn()
+      const parser = str('foo')
+
+      parser.fork('foo', errorFn, successFn)
+
+      expect(successFn).toHaveBeenCalledWith('foo', expect.anything())
+      expect(errorFn).not.toHaveBeenCalled()
+    })
+
+    it('should call the error function when parsing fails', () => {
+      const successFn = jest.fn()
+      const errorFn = jest.fn()
+      const parser = str('foo')
+
+      parser.fork('bar', errorFn, successFn)
+
+      expect(errorFn).toHaveBeenCalledWith(
+        `ParseError (position: 0): Tried to match 'foo', but got 'bar...'`,
+        expect.anything()
+      )
+      expect(successFn).not.toHaveBeenCalled()
+    })
   })
 
   it('should update state with new result using map', () => {
