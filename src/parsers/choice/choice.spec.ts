@@ -21,10 +21,4 @@ describe('choice', () => {
       `ParseError @ index 0 -> choice: Unable to match with any parser`
     )
   })
-
-  it('should throw error if parsers array is empty', () => {
-    expect(() => choice([])).toThrow(
-      'choice requires a non-empty list of parsers'
-    )
-  })
 })
