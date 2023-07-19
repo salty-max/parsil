@@ -18,7 +18,7 @@ describe('choice', () => {
 
     assertIsError(result)
     expect(result.error).toBe(
-      `ParseError (position: 0): Unable to match with any parser`
+      `ParseError @ index 0 -> choice: Unable to match with any parser`
     )
   })
 

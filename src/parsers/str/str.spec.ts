@@ -19,7 +19,8 @@ describe('str', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error: "ParseError (position: 0): Tried to match 'foo', but got 'bar...'",
+      error:
+        "ParseError @ index 0 -> str: Tried to match 'foo', but got 'bar...'",
     })
   })
 
@@ -31,7 +32,7 @@ describe('str', () => {
       index: 0,
       isError: true,
       error:
-        "ParseError (position: 0): Tried to match 'foo', but got unexpected end of input",
+        "ParseError @ index 0 -> str: Tried to match 'foo', but got unexpected end of input",
     })
   })
 

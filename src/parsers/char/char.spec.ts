@@ -19,7 +19,7 @@ describe('char', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error: "ParseError (position: 0): Expected '@', but got '$'",
+      error: "ParseError @ index 0 -> char: Expected '@', but got '$'",
     })
   })
 
@@ -31,7 +31,7 @@ describe('char', () => {
       index: 0,
       isError: true,
       error:
-        "ParseError (position: 0): Expected '@', but got unexpected end of input",
+        "ParseError @ index 0 -> char: Expected '@', but got unexpected end of input",
     })
   })
 

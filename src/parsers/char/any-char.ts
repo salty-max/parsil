@@ -16,7 +16,7 @@ export const anyChar: Parser<string> = new Parser(
 
     return updateError(
       state,
-      `ParseError (position: ${index}): Expected a character, but got unexpected end of input`
+      `ParseError @ index ${index} -> anyChar: Expected a character, but got unexpected end of input`
     )
   }
 )

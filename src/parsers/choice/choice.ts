@@ -22,7 +22,7 @@ export const choice = (parsers: Array<Parser<any>>): Parser<any> => {
 
     return updateError(
       state,
-      `ParseError (position: ${state.index}): Unable to match with any parser`
+      `ParseError @ index ${state.index} -> choice: Unable to match with any parser`
     )
   })
 }
