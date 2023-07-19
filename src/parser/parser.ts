@@ -173,6 +173,16 @@ export class Parser<T, E = string> {
     })
   }
 
+  chain<T2>(fn: (oldRes: T) => Parser<T2, E>): Parser<T2, E> {
+    return new Parser((state): ParserState<T2, E> => {
+      const nextState = this.p(state)
+
+      if (nextState.isError) return nextState as unknown as ParserState<T2, E>
+
+      return fn(nextState.result).p(nextState)
+    })
+  }
+
   /**
    * Transforms the parser into a new parser which applies a function `fn`
    * to the error message and index of the original parser when it encounters an error.
