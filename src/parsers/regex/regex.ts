@@ -1,6 +1,26 @@
 import { Parser, ParserState, updateError, updateState } from '../../parser'
 import { encoder, getString } from '../../util'
 
+/**
+ * `regex` is a parser that tries to match a given Regular Expression `re` against its input.
+ * If the input starts with a string that matches `re`, it consumes the matched characters and
+ * returns an `Ok` result with the match as a string and the next position in the input.
+ * If there's no match, it returns an `Err` result with an error message and the current position.
+ * An error is also thrown if `regex` is not called with a Regular Expression or if the Regular
+ * Expression doesn't start with the '^' assertion.
+ *
+ * @example
+ * const parser = regex(/^[a-z]+/)
+ * parser.run("abcd123")  // returns { isError: false, result: "abcd", index: 4 }
+ * parser.run("123abcd")  // returns { isError: true, error: "ParseError @ index 0 -> regex: Tried to match '/^[a-z]+/', got '123ab...'", index: 0 }
+ * regex("abcd")  // throws `regex must be called with a Regular Expression, but got [object String]`
+ * regex(/abc/)  // throws `regex parsers must contain '^' start assertion`
+ *
+ * @param re The Regular Expression to match against the input.
+ * @throws {TypeError} If `re` is not a Regular Expression.
+ * @throws {Error} If `re` doesn't start with the '^' assertion.
+ * @return {Parser<string>} A parser that tries to match the input against `re`.
+ */
 export const regex = (re: RegExp): Parser<string> => {
   const typeofre = Object.prototype.toString.call(re)
   if (typeofre !== '[object RegExp]') {
@@ -28,7 +48,7 @@ export const regex = (re: RegExp): Parser<string> => {
           )
         : updateError(
             state,
-            `ParseError (position ${index}) Tried to match '${re}', got '${rest.slice(
+            `ParseError @ index ${index} -> regex: Tried to match '${re}', got '${rest.slice(
               0,
               5
             )}...'`
@@ -37,7 +57,7 @@ export const regex = (re: RegExp): Parser<string> => {
 
     return updateError(
       state,
-      `ParseError (position ${index}) Tried to match ${re}, but got unexpected end of input`
+      `ParseError @ index ${index} -> regex: Tried to match ${re}, but got unexpected end of input`
     )
   })
 }
