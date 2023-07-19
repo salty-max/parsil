@@ -5,7 +5,7 @@ describe('str', () => {
     const parser = str('foo')
     const res = parser.run('foo')
     expect(res).toStrictEqual({
-      targetString: 'foo',
+      target: 'foo',
       index: 3,
       result: 'foo',
       isError: false,
@@ -16,7 +16,7 @@ describe('str', () => {
     const parser = str('foo')
     const res = parser.run('bar')
     expect(res).toStrictEqual({
-      targetString: 'bar',
+      target: 'bar',
       index: 0,
       result: null,
       isError: true,
@@ -27,7 +27,7 @@ describe('str', () => {
     const parser = str('foo')
     const res = parser.run('')
     expect(res).toStrictEqual({
-      targetString: '',
+      target: '',
       index: 0,
       result: null,
       isError: true,

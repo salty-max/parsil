@@ -3,15 +3,27 @@ import {
   ParserState,
   updateParserError,
   updateParserState,
-} from '../parser'
+} from '../parser/parser'
 
-export const str = (s: string): Parser =>
-  new Parser((state: ParserState): ParserState => {
-    const { targetString, index, isError } = state
+/**
+ * Generates a parser that matches a specific string `s` in the input.
+ * @param s - The string that the generated parser will try to match.
+ * @returns A Parser instance that matches the string `s`.
+ */
+export const str = (s: string): Parser<string> =>
+  new Parser<string>((state: ParserState<string>): ParserState<string> => {
+    const { target, index, isError } = state
 
     if (isError) return state
 
-    const slicedTarget = targetString.slice(index)
+    if (typeof target !== 'string') {
+      return updateParserError(
+        state,
+        `str: Expected target to be a string, but got ${typeof target}`
+      )
+    }
+
+    const slicedTarget = target.slice(index)
 
     if (slicedTarget.length === 0) {
       return updateParserError(
@@ -26,9 +38,9 @@ export const str = (s: string): Parser =>
 
     return updateParserError(
       state,
-      `str: Tried to match '${s}', but got '${targetString.slice(
+      `str: Tried to match '${s}', but got '${target.slice(
         index,
-        index + targetString.length
+        index + target.length
       )}'`
     )
   })

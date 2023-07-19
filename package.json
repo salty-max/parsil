@@ -10,7 +10,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "ts-node dist/index.js",
-    "build": "npm run clean && tsc",
+    "build": "yarn clean && tsc",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "fmt": "prettier --write \"src/**/*.ts\"",
