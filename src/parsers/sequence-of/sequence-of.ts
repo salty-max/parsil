@@ -1,4 +1,4 @@
-import { Parser, ParserState, updateParserResult } from '../parser/parser'
+import { Parser, updateResult } from '../../parser/parser'
 
 /**
  * Creates a new parser that tries to match a sequence of parsers.
@@ -9,17 +9,20 @@ import { Parser, ParserState, updateParserResult } from '../parser/parser'
  * @returns A new Parser instance that matches a sequence of the provided parsers.
  */
 export const sequenceOf = (parsers: Array<Parser<any>>): Parser<any> =>
-  new Parser((state: ParserState<any>): ParserState<any> => {
+  new Parser((state) => {
     if (state.isError) return state
 
     const results = []
     let nextState = state
 
     for (const p of parsers) {
-      nextState = p.parserStateTransformerFn(nextState)
-      const result = nextState.isError ? null : nextState.result
-      results.push(result)
+      const out = p.p(nextState)
+
+      if (out.isError) return out
+
+      nextState = out
+      results.push(out.result)
     }
 
-    return updateParserResult(nextState, results)
+    return updateResult(nextState, results)
   })

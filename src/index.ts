@@ -1,10 +1,9 @@
-import { sequenceOf } from './sequence-of'
-import { str } from './str'
+import { letters } from './parsers/letters'
+import { sequenceOf } from './parsers/sequence-of'
+import { str } from './parsers/str'
 
-const parser = sequenceOf([str('hello'), str('world')])
-  .map((res) => ({
-    value: res,
-  }))
-  .errorMap((_, index) => `Expected a greeting @ index ${index}`)
+const parser = sequenceOf([str('hello'), letters]).map((res) => ({
+  value: res,
+}))
 
-console.log(parser.run('hello world'))
+console.log(parser.run('helloworld'))
