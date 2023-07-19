@@ -173,6 +173,15 @@ export class Parser<T, E = string> {
     })
   }
 
+  /**
+   * Transforms the parser into a new parser by applying a function to the result of the original parser.
+   * This function should return a new Parser that can be used to parse the next input. This is used
+   * for cases where the result of a parser is needed to decide what to parse next.
+   *
+   * @param fn A function that takes the result of type T from the original parser and returns a new Parser.
+   * @returns A new Parser instance that uses the function `fn` to decide what to parse next.
+   * This parser is used to parse the remainder of the input after the original parser has consumed its part.
+   */
   chain<T2>(fn: (oldRes: T) => Parser<T2, E>): Parser<T2, E> {
     return new Parser((state): ParserState<T2, E> => {
       const nextState = this.p(state)

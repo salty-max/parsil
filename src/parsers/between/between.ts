@@ -28,5 +28,5 @@ import { sequenceOf } from '../sequence-of'
  */
 export const between =
   <L, T, R>(leftParser: Parser<L>, rightParser: Parser<R>) =>
-  (contentParser: Parser<T>) =>
+  (contentParser: Parser<T>): Parser<T> =>
     sequenceOf([leftParser, contentParser, rightParser]).map(([_, c]) => c)
