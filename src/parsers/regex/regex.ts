@@ -48,7 +48,7 @@ export const regex = (re: RegExp): Parser<string> => {
           )
         : updateError(
             state,
-            `ParseError @ index ${index} -> regex: Tried to match '${re}', got '${rest.slice(
+            `ParseError @ index ${index} -> regex: Tried to match ${re}, got '${rest.slice(
               0,
               5
             )}...'`
