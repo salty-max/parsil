@@ -1,38 +1,91 @@
-import { InputType } from '../input-types'
+import { InputType, InputTypes } from '../input-types'
+import { encoder } from '../util'
+
+export type InternalResultType<T, E> = {
+  isError: boolean
+  error: E
+  index: number
+  result: T
+}
 
 /**
  * Interface representing the state of the parser.
  * It contains the input target to be parsed, the current index,
  * the result of the parsing (or null if not done yet), and potential errors.
  */
-export interface ParserState<T> {
-  target: InputType // The input to parse.
-  index: number // The current index in the input.
-  result: T | null // The result of parsing.
-  error: string | null // Any error message from the parser.
-  isError: boolean // Whether or not the parser encountered an error.
-}
+export type ParserState<T, E> = {
+  dataView: DataView
+  inputType: InputType
+} & InternalResultType<T, E>
 
 /**
  * The function type used to transform one parser state into another.
  * It takes a parser state with a result of type T and returns a state with a result of type U.
  */
-export type ParserStateTransformerFn<T, U = T> = (
-  parserState: ParserState<T>
-) => ParserState<U>
+export type StateTransformerFn<T, E = any> = (
+  state: ParserState<any, any>
+) => ParserState<T, E>
+
+export type ResultType<T, E> = Err<E> | Ok<T>
+
+export type Err<E> = {
+  isError: true
+  error: E
+  index: number
+}
+
+export type Ok<T> = {
+  isError: false
+  result: T
+  index: number
+}
+
+export function isOk<T, E>(result: ResultType<T, E>): result is Ok<T> {
+  return !result.isError
+}
+
+export function isError<T, E>(result: ResultType<T, E>): result is Err<E> {
+  return result.isError
+}
+
+const createParserState = (
+  target: InputType
+): ParserState<null, string | null> => {
+  let dataView: DataView
+  let inputType
+
+  if (typeof target === 'string') {
+    const bytes = encoder.encode(target)
+    dataView = new DataView(bytes.buffer)
+    inputType = InputTypes.STRING
+  } else {
+    throw new Error(
+      `Cannot process input. Must be a string. Got ${typeof target}`
+    )
+  }
+
+  return {
+    dataView,
+    inputType,
+    isError: false,
+    error: null,
+    result: null,
+    index: 0,
+  }
+}
 
 /**
  * Main Parser class, represents a parser with a state transformation function.
  */
-export class Parser<T> {
-  parserStateTransformerFn: ParserStateTransformerFn<T> // The state transformer function for this parser.
+export class Parser<T, E = string> {
+  p: StateTransformerFn<T, E> // The state transformer function for this parser.
 
   /**
    * Constructs a parser instance using a parser state transformer function.
    * @param parserStateTransformerFn The state transformer function for the parser.
    */
-  constructor(parserStateTransformerFn: ParserStateTransformerFn<T>) {
-    this.parserStateTransformerFn = parserStateTransformerFn
+  constructor(p: StateTransformerFn<T, E>) {
+    this.p = p
   }
 
   /**
@@ -40,16 +93,23 @@ export class Parser<T> {
    * @param target The input to be parsed.
    * @returns The resulting parser state.
    */
-  run(target: InputType) {
-    const initialState: ParserState<T> = {
-      target,
-      index: 0,
-      result: null,
-      error: null,
-      isError: false,
+  run(target: InputType): ResultType<T, E> {
+    const initialState = createParserState(target)
+    const resultState = this.p(initialState)
+
+    if (resultState.isError) {
+      return {
+        isError: true,
+        error: resultState.error,
+        index: resultState.index,
+      }
     }
 
-    return this.parserStateTransformerFn(initialState)
+    return {
+      isError: false,
+      result: resultState.result,
+      index: resultState.index,
+    }
   }
 
   /**
@@ -57,19 +117,13 @@ export class Parser<T> {
    * @param fn A function that takes a result of type T and returns a result of type U.
    * @returns A new Parser instance that applies the function `fn` to the result.
    */
-  map<U>(fn: (result: T) => U): Parser<U> {
-    return new Parser<U>((state: ParserState<U>) => {
-      const nextState = this.parserStateTransformerFn(
-        state as unknown as ParserState<T>
-      )
+  map<T2>(fn: (oldRes: T) => T2): Parser<T2, E> {
+    return new Parser((state): ParserState<T2, E> => {
+      const newState = this.p(state)
 
-      if (nextState.isError) return nextState as unknown as ParserState<U>
+      if (newState.isError) return newState as unknown as ParserState<T2, E>
 
-      if (nextState.result !== null) {
-        return updateParserResult(nextState, fn(nextState.result))
-      }
-
-      throw new Error('map: Cannot process a null result')
+      return updateResult(newState, fn(newState.result))
     })
   }
 
@@ -84,13 +138,19 @@ export class Parser<T> {
    * first applies the original parser's state transformer function and then,
    * if there was an error, it updates the error message using the `fn` function.
    */
-  errorMap(fn: (error: string, index: number) => string): Parser<T> {
-    return new Parser<T>((state: ParserState<T>) => {
-      const nextState = this.parserStateTransformerFn(state)
+  errorMap<E2>(fn: (error: Err<E>) => E2): Parser<T, E2> {
+    return new Parser((state): ParserState<T, E2> => {
+      const nextState = this.p(state)
+      if (!nextState.isError) return nextState as unknown as ParserState<T, E2>
 
-      if (!nextState.isError) return nextState
-
-      return updateParserError(nextState, fn(nextState.error!, nextState.index))
+      return updateError(
+        nextState,
+        fn({
+          isError: true,
+          error: nextState.error,
+          index: nextState.index,
+        })
+      )
     })
   }
 }
@@ -102,41 +162,41 @@ export class Parser<T> {
  * @param result The new parsing result.
  * @returns A new parser state with updated index and result.
  */
-export const updateParserState = <T, U = T>(
-  oldState: ParserState<T>,
+export const updateState = <T, E, T2>(
+  state: ParserState<T, E>,
   index: number,
-  result: U
-): ParserState<U> => ({
-  ...oldState,
+  result: T2
+): ParserState<T2, E> => ({
+  ...state,
   index,
   result,
 })
 
 /**
  * Updates the state of the parser with a new result.
- * @param oldState The previous state of the parser.
+ * @param state The previous state of the parser.
  * @param result The new parsing result.
  * @returns A new parser state with updated result.
  */
-export const updateParserResult = <T, U = T>(
-  oldState: ParserState<T>,
-  result: U
-): ParserState<U> => ({
-  ...oldState,
+export const updateResult = <T, E, T2>(
+  state: ParserState<T, E>,
+  result: T2
+): ParserState<T2, E> => ({
+  ...state,
   result,
 })
 
 /**
  * Updates the state of the parser with an error.
- * @param oldState The previous state of the parser.
+ * @param state The previous state of the parser.
  * @param errorMsg The error message.
  * @returns A new parser state with updated error information.
  */
-export const updateParserError = <T>(
-  oldState: ParserState<T>,
-  errorMsg: string
-): ParserState<T> => ({
-  ...oldState,
+export const updateError = <T, E, E2>(
+  state: ParserState<T, E>,
+  error: E2
+): ParserState<T, E2> => ({
+  ...state,
   isError: true,
-  error: errorMsg,
+  error,
 })

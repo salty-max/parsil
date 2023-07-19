@@ -1,127 +1,67 @@
-import { sequenceOf } from '../sequence-of'
-import { str } from '../str'
+import { InputTypes } from '../input-types'
+import { assertIsError, assertIsOk } from '../util'
 import {
   Parser,
-  updateParserError,
-  updateParserResult,
-  updateParserState,
+  isError,
+  updateState,
+  updateResult,
+  updateError,
 } from './parser'
 
 describe('Parser', () => {
-  describe('run', () => {
-    it('should initialize the parser state and apply the transformer function', () => {
-      const transformer = jest.fn()
-      const parser = new Parser(transformer)
-      const input = 'foo'
+  it('should return Ok when parsing is successful', () => {
+    const parser = new Parser((state) => updateResult(state, 'Hello'))
+    const result = parser.run('Test input')
 
-      parser.run(input)
-
-      expect(transformer).toHaveBeenCalledWith({
-        target: input,
-        index: 0,
-        result: null,
-        error: null,
-        isError: false,
-      })
-    })
+    assertIsOk(result)
+    expect(result.result).toBe('Hello')
   })
 
-  describe('map', () => {
-    it('should return a new Parser that applies a given function to the result', () => {
-      const transformer = jest.fn().mockReturnValue({ result: 'foo' })
-      const parser = new Parser(transformer).map((res) => `${res}!`)
+  it('should return Err when parsing fails', () => {
+    const parser = new Parser((state) => updateError(state, 'Error occurred'))
+    const result = parser.run('Test input')
 
-      const result = parser.run('foo')
+    assertIsError(result)
+    expect(isError(result)).toBe(true)
+    expect(result.error).toBe('Error occurred')
+  })
 
-      expect(result).toEqual({ result: 'foo!' })
-    })
+  it('should update state with new result using map', () => {
+    const parser = new Parser((state) => updateResult(state, 'Hello'))
+    const mappedParser = parser.map((result) => result + ', World')
+    const result = mappedParser.run('Test input')
+
+    assertIsOk(result)
+    expect(result.result).toBe('Hello, World')
+  })
+
+  it('should update error using errorMap', () => {
+    const parser = new Parser((state) => updateError(state, 'Error occurred'))
+    const errorMappedParser = parser.errorMap(
+      (error) => `Modified ${error.error}`
+    )
+    const result = errorMappedParser.run('Test input')
+
+    assertIsError(result)
+    expect(isError(result)).toBe(true)
+    expect(result.error).toBe('Modified Error occurred')
   })
 })
 
-describe('updateParserState', () => {
-  it('should update the index and result of a given ParserState', () => {
+describe('updateState', () => {
+  it('should return a new state with updated index and result', () => {
     const oldState = {
-      target: 'input',
+      dataView: new DataView(new ArrayBuffer(8)),
+      inputType: InputTypes.STRING,
+      isError: false,
+      error: null,
+      result: 'old',
       index: 0,
-      result: 'old',
-      error: null,
-      isError: false,
     }
-    const index = 2
-    const result = 'new'
 
-    const newState = updateParserState(oldState, index, result)
+    const newState = updateState(oldState, 2, 'new')
 
-    expect(newState).toEqual({
-      target: 'input',
-      index: 2,
-      result: 'new',
-      error: null,
-      isError: false,
-    })
-  })
-})
-
-describe('updateParserResult', () => {
-  it('should update the result of a given ParserState', () => {
-    const oldState = {
-      target: 'input',
-      index: 2,
-      result: 'old',
-      error: null,
-      isError: false,
-    }
-    const result = 'new'
-
-    const newState = updateParserResult(oldState, result)
-
-    expect(newState).toEqual({
-      target: 'input',
-      index: 2,
-      result: 'new',
-      error: null,
-      isError: false,
-    })
-  })
-})
-
-describe('updateParserError', () => {
-  it('should set the error message and isError flag of a given ParserState', () => {
-    const oldState = {
-      target: 'input',
-      index: 2,
-      result: null,
-      error: null,
-      isError: false,
-    }
-    const errorMsg = 'Error message'
-
-    const newState = updateParserError(oldState, errorMsg)
-
-    expect(newState).toEqual({
-      target: 'input',
-      index: 2,
-      result: null,
-      error: errorMsg,
-      isError: true,
-    })
-  })
-
-  describe('errorMap', () => {
-    it('should replace the error message with a custom one', () => {
-      const parser = sequenceOf([str('foo'), str('bar')]).errorMap(
-        (error, index) => `At index ${index}: ${error}`
-      )
-
-      const res = parser.run('foobaz')
-
-      expect(res).toEqual({
-        target: 'foobaz',
-        index: 3,
-        result: ['foo', null],
-        isError: true,
-        error: "At index 3: str: Tried to match 'bar', but got 'baz'",
-      })
-    })
+    expect(newState.index).toBe(2)
+    expect(newState.result).toBe('new')
   })
 })
