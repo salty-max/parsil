@@ -61,6 +61,7 @@ Key Features:
       - [manyOne](#manyone)
       - [one](#one)
       - [optionalWhitespace](#optionalwhitespace)
+      - [peek](#peek)
       - [possibly](#possibly)
       - [rawString](#rawstring)
       - [recursive](#recursive)
@@ -570,6 +571,33 @@ newParser.run('helloworld')
 //      isError: false,
 //      result: [ "hello", "", "world" ],
 //      index: 10,
+//    }
+```
+
+#### peek
+
+`peek` matches **exactly one** _numerical byte_ without consuming any input.
+
+**Example**
+
+```JavaScript
+peek.run('hello world')
+// -> {
+//      isError: false,
+//      result: 104,
+//      index: 0,
+//      data: null
+//    }
+
+sequenceOf([
+  str('hello'),
+  peek
+]).run('hello world')
+// -> {
+//      isError: false,
+//      result: [ "hello", 32 ],
+//      index: 5,
+//      data: null
 //    }
 ```
 
