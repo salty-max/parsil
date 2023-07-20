@@ -14,7 +14,7 @@ const letterRegex = /^[A-Za-z]/
  *
  * @returns {Parser<string>} A parser that reads a single letter from the input.
  */
-export const letter: Parser<string> = new Parser(function letter$state(state) {
+export const letter: Parser<string> = new Parser((state) => {
   if (state.isError) return state
 
   const { index, dataView } = state

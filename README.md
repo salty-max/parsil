@@ -46,6 +46,8 @@ Key Features:
       - [many](#many)
       - [manyOne](#manyone)
       - [one](#one)
+      - [optionalWhitespace](#optionalwhitespace)
+      - [possibly](#possibly)
       - [rawString](#rawstring)
       - [recursive](#recursive)
       - [regex](#regex)
@@ -55,6 +57,7 @@ Key Features:
       - [succeed](#succeed)
       - [str](#str)
       - [uint](#uint)
+      - [whitespace](#whitespace)
       - [zero](#zero)
 
 ## Installation
@@ -358,7 +361,6 @@ digit.run('99 bottles of beer on the wall')
 //      isError: false,
 //      result: "9",
 //      index: 1,
-//      data: null
 //    }
 ```
 
@@ -420,7 +422,6 @@ letter.run('hello world')
 //      isError: false,
 //      result: "h",
 //      index: 1,
-//      data: null
 //    }
 ```
 
@@ -527,6 +528,54 @@ parser.run(new Dataview(data))
 //      isError: true,
 //      error: "ParseError @ index 0 -> one: Expected 1 but got 0",
 //      index: 0,
+//    }
+```
+
+#### optionalWhitespace
+
+`optionalWhitespace` is a parser that matches **zero or more** whitespace characters.
+
+**Example**
+
+```JavaScript
+const newParser = sequenceOf ([
+  str ('hello'),
+  optionalWhitespace,
+  str ('world')
+]);
+
+newParser.run('hello           world')
+// -> {
+//      isError: false,
+//      result: [ "hello", "           ", "world" ],
+//      index: 21,
+//    }
+
+newParser.run('helloworld')
+// -> {
+//      isError: false,
+//      result: [ "hello", "", "world" ],
+//      index: 10,
+//    }
+```
+
+#### possibly
+
+`possibly` takes an _attempt_ parser and returns a new parser which tries to match using the _attempt_ parser. If it is unsuccessful, it returns a null value and does not "consume" any input.
+
+**Example**
+
+```JavaScript
+const newParser = sequenceOf ([
+  possibly (str ('Not Here')),
+  str ('Yep I am here')
+]);
+
+newParser.run('Yep I am here')
+// -> {
+//      isError: false,
+//      result: [ null, "Yep I am here" ],
+//      index: 13,
 //    }
 ```
 
@@ -731,7 +780,35 @@ const result = parser.run(new DataView(input.buffer))
 //      result: 42,
 //      index: 8,
 //    }
-```  
+```
+
+#### whitespace
+
+`whitespace` is a parser that matches **one or more** whitespace characters.
+
+**Example**
+
+```JavaScript
+const newParser = sequenceOf ([
+  str ('hello'),
+  whitespace,
+  str ('world')
+]);
+
+newParser.run('hello           world')
+// -> {
+//      isError: false,
+//      result: [ "hello", "           ", "world" ],
+//      index: 21,
+//    }
+
+newParser.run('helloworld')
+// -> {
+//      isError: true,
+//      error: "ParseError 'many1' (position 5): Expecting to match at least one value",
+//      index: 5,
+//    }
+```
 
 #### zero
 `zero` parses bit at index from a Dataview and expects it to be 0

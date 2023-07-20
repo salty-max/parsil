@@ -14,7 +14,7 @@ const digitRegex = /^[0-9]/
  *
  * @returns {Parser<string>} A parser that reads a single digit from the input.
  */
-export const digit: Parser<string> = new Parser(function digit$state(state) {
+export const digit: Parser<string> = new Parser((state) => {
   if (state.isError) return state
 
   const { dataView, index } = state
