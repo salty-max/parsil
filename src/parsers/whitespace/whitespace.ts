@@ -4,7 +4,7 @@ import { regex } from '../regex'
 const wsRegex = /^\s+/
 
 /**
- * `whitespace` is a parser that matches any whitespace character.
+ * `whitespace` matches any whitespace character.
  *
  * @example
  * const parser = P.whitespace;
