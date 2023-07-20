@@ -27,6 +27,11 @@ Key Features:
   - [possibly](#possibly)
   - [optionalWhitespace](#optionalwhitespace)
   - [whitespace](#whitespace)
+### v1.2.0
+
+- New parsers
+  - [exactly](#exactly)
+  - [peek](#peek)
 
 ## Table of contents
 
@@ -34,6 +39,7 @@ Key Features:
   - [Description](#description)
   - [Release notes](#release-notes)
     - [v1.1.0](#v110)
+    - [v1.2.0](#v120)
   - [Table of contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
