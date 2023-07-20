@@ -327,6 +327,22 @@ newParser.run('hello world')
 //    }
 ```
 
+#### coroutine
+
+`coroutine` is a parser that allows for advanced control flow and composition of parsers.
+
+**Example**
+```javascript
+const parserFn: ParserFn<number> = (yield) => {
+  const x = yield(parserA);
+  const y = yield(parserB);
+  return x + y;
+};
+ *
+const coroutineParser = coroutine(parserFn);
+coroutineParser.run(input);
+```
+
 #### digits
 
 `digits` matches **one or more** numerical digit `/[0-9]/`.
