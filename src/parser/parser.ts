@@ -1,4 +1,4 @@
-import { InputType, InputTypes } from '../input-types'
+import { InputType, InputTypes, isTypedArray } from '../input-types'
 import { encoder } from '../util'
 
 /**
@@ -77,9 +77,18 @@ const createParserState = (
     const bytes = encoder.encode(target)
     dataView = new DataView(bytes.buffer)
     inputType = InputTypes.STRING
+  } else if (target instanceof ArrayBuffer) {
+    dataView = new DataView(target)
+    inputType = InputTypes.ARRAY_BUFFER
+  } else if (isTypedArray(target)) {
+    dataView = new DataView(target.buffer)
+    inputType = InputTypes.TYPED_ARRAY
+  } else if (target instanceof DataView) {
+    dataView = target
+    inputType = InputTypes.DATA_VIEW
   } else {
     throw new Error(
-      `Cannot process input. Must be a string. Got ${typeof target}`
+      `Cannot process input. Must be a string, ArrayBuffer, TypedArray, or DataView. Got ${typeof target}`
     )
   }
 

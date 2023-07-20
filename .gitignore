@@ -3,3 +3,5 @@
 
 # Ignore Node.js runtime artifacts
 node_modules/
+
+.DS_Store

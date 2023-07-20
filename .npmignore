@@ -12,8 +12,11 @@ examples/
 .prettierignore
 tsconfig.json
 jest.config.js
-rollup.config.js
+rollup.config.mjs
 *.log
 **/*.spec.ts
-LICENCE
+LICENSE
 README.md
+.vscode
+*.code-workspace
+
