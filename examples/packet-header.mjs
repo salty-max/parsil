@@ -23,11 +23,13 @@
  * 0 1 0 1 1 1 1 0 0 1 1 0 0 0 0 1  :: As sixteen individual bits
  */
 
-import { one, zero, sequenceOf } from '../dist/index.mjs'
+import { rawString } from '../dist/index.mjs'
 
-const parser = sequenceOf([one, one, one, zero, one, zero, one, zero])
+const parser = rawString('Hello World')
 
-const data = new Uint8Array([234, 235]).buffer
+const data = new Uint8Array(
+  new Uint8Array('Hello World'.split('').map((c) => c.charCodeAt(0)))
+).buffer
 const dataView = new DataView(data)
 const res = parser.run(dataView)
 
