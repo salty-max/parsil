@@ -6,8 +6,9 @@ import { bit } from './bit'
  * `uint` reads the next `n` bits from the input and interprets them as an unsigned integer.
  *
  * @example
- * const parser = uint(4); // Parses 4 bits as an unsigned integer
- * parser.run(bitset)  // returns the parsed unsigned integer if successful, otherwise fails
+ * const parser = uint(8)
+ * const input = new Uint8Array([42])
+ * const result = parser.run(new DataView(input.buffer))
  *
  * @param n The number of bits to parse as an unsigned integer.
  * @returns {Parser<number>} A parser that reads the next `n` bits as an unsigned integer.

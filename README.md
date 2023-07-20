@@ -38,16 +38,20 @@ Key Features:
       - [choice](#choice)
       - [digits](#digits)
       - [fail](#fail)
+      - [int](#int)
       - [letters](#letters)
       - [many](#many)
       - [manyOne](#manyone)
       - [one](#one)
+      - [rawString](#rawstring)
       - [recursive](#recursive)
       - [regex](#regex)
       - [sepBy](#sepby)
       - [sepByOne](#sepbyone)
       - [sequenceOf](#sequenceof)
+      - [succeed](#succeed)
       - [str](#str)
+      - [uint](#uint)
       - [zero](#zero)
 
 ## Installation
@@ -238,7 +242,7 @@ anyChar.run('😉')
 ```
 
 #### bit
-`bit` parses bit at index from a Dataview
+`bit` parses a bit at index from a Dataview
 
 **Example**
 
@@ -353,6 +357,22 @@ fail('Nope').run('hello world')
 //    }
 ```
 
+#### int
+`int` reads the next `n` bits from the input and interprets them as an signed integer.
+
+**Example**
+
+```javascript
+const parser = int(8)
+const input = new Uint8Array([-42])
+const result = parser.run(new DataView(input.buffer))
+// -> {
+//      isError: false,
+//      result: -42,
+//      index: 8,
+//    }
+```  
+
 #### letters
 
 `letters` matches **one or more** alphabetical letter `/[a-zA-Z]/`.
@@ -456,6 +476,33 @@ parser.run(new Dataview(data))
 //      isError: true,
 //      error: "ParseError @ index 0 -> one: Expected 1 but got 0",
 //      index: 0,
+//    }
+```
+
+#### rawString
+
+`rawString` matches a string of characters exactly as provided.
+
+Each character in the input string is converted to its corresponding ASCII code and a parser is created for each ASCII code.
+
+The resulting parsers are chained together using sequenceOf to ensure they are parsed in order.
+
+The parser succeeds if all characters are matched in the input and fails otherwise.
+
+**Example**
+```javascript
+const parser = rawString('Hello')
+parser.run('Hello')
+// -> {
+//      isError: false,
+//      result: [72, 101, 108, 108, 111],
+//      index: 40,
+//    }
+parser.run('World')
+// -> {
+//      isError: true,
+//      error: "ParseError -> rawString: Expected character H, but got W",
+//      index: 8,
 //    }
 ```
 
@@ -587,6 +634,23 @@ newParser.run('hello world')
 //    }
 ```
 
+#### succeed
+
+`succeed` is a parser combinator that always succeeds and produces a constant value. It ignores the input state and returns the specified value as the result.
+
+**Example**
+
+```javascript
+const parser = succeed(42);
+parser.run("hello world");
+// Returns:
+// {
+//   isError: false,
+//   result: 42,
+//   index: 0
+// }
+```
+
 #### str
 
 `str` tries to match a given string against its input.
@@ -601,6 +665,22 @@ str('hello').run('hello world')
 //      index: 5,
 //    }
 ```
+
+#### uint
+`uint` reads the next `n` bits from the input and interprets them as an unsigned integer.
+
+**Example**
+
+```javascript
+const parser = uint(8)
+const input = new Uint8Array([42])
+const result = parser.run(new DataView(input.buffer))
+// -> {
+//      isError: false,
+//      result: 42,
+//      index: 8,
+//    }
+```  
 
 #### zero
 `zero` parses bit at index from a Dataview and expects it to be 0

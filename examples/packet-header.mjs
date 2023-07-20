@@ -23,14 +23,47 @@
  * 0 1 0 1 1 1 1 0 0 1 1 0 0 0 0 1  :: As sixteen individual bits
  */
 
-import { rawString } from '../dist/index.mjs'
+import { readFileSync } from 'fs'
+import { uint, sequenceOf, succeed } from '../dist/index.mjs'
+import path, { dirname } from 'path'
+import { fileURLToPath } from 'url'
 
-const parser = rawString('Hello World')
+const tag = (type) => (value) => ({
+  type,
+  value,
+})
 
-const data = new Uint8Array(
-  new Uint8Array('Hello World'.split('').map((c) => c.charCodeAt(0)))
-).buffer
-const dataView = new DataView(data)
-const res = parser.run(dataView)
+const packetParser = sequenceOf([
+  uint(4).map(tag('Version')),
+  uint(4).map(tag('IHL')),
+  uint(6).map(tag('DSCP')),
+  uint(2).map(tag('ECN')),
+  uint(16).map(tag('Total Length')),
+  uint(16).map(tag('Identification')),
+  uint(3).map(tag('Flags')),
+  uint(13).map(tag('Fragment Offset')),
+  uint(8).map(tag('TTL')),
+  uint(8).map(tag('Protocol')),
+  uint(16).map(tag('Header Checksum')),
+  uint(32).map(tag('Source IP')),
+  uint(32).map(tag('Destination IP')),
+]).chain((res) => {
+  if (res[1].value > 5) {
+    const remainingBytes = Array.from({ length: res[1].value - 20 }, () =>
+      uint(8)
+    )
+    return sequenceOf(remainingBytes).chain((remaining) => [
+      ...res,
+      tag('Options')(remaining),
+    ])
+  }
 
-console.log(res)
+  return succeed(res)
+})
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const file = new Uint8Array(readFileSync(path.join(__dirname, './packet.bin')))
+  .buffer
+const data = new DataView(file)
+
+console.log(packetParser.run(data))
