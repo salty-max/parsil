@@ -36,9 +36,12 @@ Key Features:
       - [between](#between)
       - [char](#char)
       - [choice](#choice)
+      - [coroutine](#coroutine)
+      - [digit](#digit)
       - [digits](#digits)
       - [fail](#fail)
       - [int](#int)
+      - [letter](#letter)
       - [letters](#letters)
       - [many](#many)
       - [manyOne](#manyone)
@@ -343,6 +346,22 @@ const coroutineParser = coroutine(parserFn);
 coroutineParser.run(input);
 ```
 
+#### digit
+
+`digit` is a parser that matches **exactly one** numerical digit `/[0-9]/`.
+
+**Example**
+
+```JavaScript
+digit.run('99 bottles of beer on the wall')
+// -> {
+//      isError: false,
+//      result: "9",
+//      index: 1,
+//      data: null
+//    }
+```
+
 #### digits
 
 `digits` matches **one or more** numerical digit `/[0-9]/`.
@@ -388,6 +407,22 @@ const result = parser.run(new DataView(input.buffer))
 //      index: 8,
 //    }
 ```  
+
+#### letter
+
+`letter` is a parser that matches **exactly one** alphabetical letter `/[a-zA-Z]/`.
+
+**Example**
+
+```JavaScript
+letter.run('hello world')
+// -> {
+//      isError: false,
+//      result: "h",
+//      index: 1,
+//      data: null
+//    }
+```
 
 #### letters
 
