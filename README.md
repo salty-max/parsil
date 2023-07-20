@@ -36,13 +36,18 @@ Key Features:
       - [between](#between)
       - [char](#char)
       - [choice](#choice)
+      - [coroutine](#coroutine)
+      - [digit](#digit)
       - [digits](#digits)
       - [fail](#fail)
       - [int](#int)
+      - [letter](#letter)
       - [letters](#letters)
       - [many](#many)
       - [manyOne](#manyone)
       - [one](#one)
+      - [optionalWhitespace](#optionalwhitespace)
+      - [possibly](#possibly)
       - [rawString](#rawstring)
       - [recursive](#recursive)
       - [regex](#regex)
@@ -52,6 +57,7 @@ Key Features:
       - [succeed](#succeed)
       - [str](#str)
       - [uint](#uint)
+      - [whitespace](#whitespace)
       - [zero](#zero)
 
 ## Installation
@@ -327,6 +333,37 @@ newParser.run('hello world')
 //    }
 ```
 
+#### coroutine
+
+`coroutine` is a parser that allows for advanced control flow and composition of parsers.
+
+**Example**
+```javascript
+const parserFn: ParserFn<number> = (yield) => {
+  const x = yield(parserA);
+  const y = yield(parserB);
+  return x + y;
+};
+ *
+const coroutineParser = coroutine(parserFn);
+coroutineParser.run(input);
+```
+
+#### digit
+
+`digit` is a parser that matches **exactly one** numerical digit `/[0-9]/`.
+
+**Example**
+
+```JavaScript
+digit.run('99 bottles of beer on the wall')
+// -> {
+//      isError: false,
+//      result: "9",
+//      index: 1,
+//    }
+```
+
 #### digits
 
 `digits` matches **one or more** numerical digit `/[0-9]/`.
@@ -372,6 +409,21 @@ const result = parser.run(new DataView(input.buffer))
 //      index: 8,
 //    }
 ```  
+
+#### letter
+
+`letter` is a parser that matches **exactly one** alphabetical letter `/[a-zA-Z]/`.
+
+**Example**
+
+```JavaScript
+letter.run('hello world')
+// -> {
+//      isError: false,
+//      result: "h",
+//      index: 1,
+//    }
+```
 
 #### letters
 
@@ -476,6 +528,54 @@ parser.run(new Dataview(data))
 //      isError: true,
 //      error: "ParseError @ index 0 -> one: Expected 1 but got 0",
 //      index: 0,
+//    }
+```
+
+#### optionalWhitespace
+
+`optionalWhitespace` is a parser that matches **zero or more** whitespace characters.
+
+**Example**
+
+```JavaScript
+const newParser = sequenceOf ([
+  str ('hello'),
+  optionalWhitespace,
+  str ('world')
+]);
+
+newParser.run('hello           world')
+// -> {
+//      isError: false,
+//      result: [ "hello", "           ", "world" ],
+//      index: 21,
+//    }
+
+newParser.run('helloworld')
+// -> {
+//      isError: false,
+//      result: [ "hello", "", "world" ],
+//      index: 10,
+//    }
+```
+
+#### possibly
+
+`possibly` takes an _attempt_ parser and returns a new parser which tries to match using the _attempt_ parser. If it is unsuccessful, it returns a null value and does not "consume" any input.
+
+**Example**
+
+```JavaScript
+const newParser = sequenceOf ([
+  possibly (str ('Not Here')),
+  str ('Yep I am here')
+]);
+
+newParser.run('Yep I am here')
+// -> {
+//      isError: false,
+//      result: [ null, "Yep I am here" ],
+//      index: 13,
 //    }
 ```
 
@@ -680,7 +780,35 @@ const result = parser.run(new DataView(input.buffer))
 //      result: 42,
 //      index: 8,
 //    }
-```  
+```
+
+#### whitespace
+
+`whitespace` is a parser that matches **one or more** whitespace characters.
+
+**Example**
+
+```JavaScript
+const newParser = sequenceOf ([
+  str ('hello'),
+  whitespace,
+  str ('world')
+]);
+
+newParser.run('hello           world')
+// -> {
+//      isError: false,
+//      result: [ "hello", "           ", "world" ],
+//      index: 21,
+//    }
+
+newParser.run('helloworld')
+// -> {
+//      isError: true,
+//      error: "ParseError 'many1' (position 5): Expecting to match at least one value",
+//      index: 5,
+//    }
+```
 
 #### zero
 `zero` parses bit at index from a Dataview and expects it to be 0
