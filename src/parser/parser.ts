@@ -110,7 +110,7 @@ export class Parser<T, E = string> {
   }
 
   /**
-   * Starts the parsing process on an input, initializing the state, and applying the transformer function.
+   * `.run` starts the parsing process on an input, initializing the state, and applying the transformer function.
    * @param target The input to be parsed.
    * @returns The resulting parser state.
    */
@@ -134,7 +134,7 @@ export class Parser<T, E = string> {
   }
 
   /**
-   * Takes an input to parse, and two functions to handle the results of parsing:
+   * `.fork` takes an input to parse, and two functions to handle the results of parsing:
    * an error function that is called when parsing fails, and a success function that is called when parsing is successful.
    * The fork method will run the parser on the input and, depending on the outcome, call the appropriate function.
    *
@@ -159,7 +159,7 @@ export class Parser<T, E = string> {
   }
 
   /**
-   * Transforms the parser into a new parser that applies a function to the result of the original parser.
+   * `.map` transforms the parser into a new parser that applies a function to the result of the original parser.
    * @param fn A function that takes a result of type T and returns a result of type T2.
    * @returns A new Parser instance that applies the function `fn` to the result.
    */
@@ -174,7 +174,7 @@ export class Parser<T, E = string> {
   }
 
   /**
-   * Transforms the parser into a new parser by applying a function to the result of the original parser.
+   * `.chain` transforms the parser into a new parser by applying a function to the result of the original parser.
    * This function should return a new Parser that can be used to parse the next input. This is used
    * for cases where the result of a parser is needed to decide what to parse next.
    *
@@ -193,7 +193,7 @@ export class Parser<T, E = string> {
   }
 
   /**
-   * Transforms the parser into a new parser which applies a function `fn`
+   * `.errorMap` transforms the parser into a new parser which applies a function `fn`
    * to the error message and index of the original parser when it encounters an error.
    *
    * @param fn - This is a function that takes error message and index as inputs and returns a string.
