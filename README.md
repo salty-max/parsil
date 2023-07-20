@@ -134,8 +134,8 @@ str('hello').fork(
     return result;
   }
 );
-// [console.log] ParseError (position 0): Expecting string 'hello', got 'farew...'
-// [console.log] Object {isError: true, error: "ParseError (position 0): Expecting string 'hello',…", target: "farewell", index: 0, …}
+// [console.log] ParseError @ index 0 -> str: Expecting string 'hello', got 'farew...'
+// [console.log] Object {isError: true, error: "ParseError @ index 0 -> str: Expecting string 'hello',…", target: "farewell", index: 0, …}
 // "goodbye"
 ```
 #### .map
@@ -205,7 +205,7 @@ const newParser = letters.errorMap(({error, index}) => `Old message was: [${erro
 newParser.run('1234')
 // -> {
 //      isError: true,
-//      error: "Old message was: [ParseError (position 0): Expecting letters] @ index 0",
+//      error: "Old message was: [ParseError @ index 0 -> letters: Expecting letters] @ index 0",
 //      index: 0,
 //    }
 ```
@@ -257,7 +257,7 @@ const betweenRoundBrackets = between (char ('(')) (char (')'));
 betweenRoundBrackets (many (letters)).run('(hello world)')
 // -> {
 //      isError: true,
-//      error: "ParseError (position 6): Expecting character ')', got ' '",
+//      error: "ParseError @ index 6 -> between: Expecting character ')', got ' '",
 //      index: 6,
 //    }
 ```
