@@ -16,10 +16,24 @@ Key Features:
 - Flexible and expressive API for defining custom parsers
 - Well-documented and easy to use
 
+## Release notes
+
+### v1.1.0
+
+- New parsers
+  - [coroutine](#coroutine)
+  - [digit](#digit)
+  - [letter](#letter)
+  - [possibly](#possibly)
+  - [optionalWhitespace](#optionalwhitespace)
+  - [whitespace](#whitespace)
+
 ## Table of contents
 
 - [Parsil](#parsil)
   - [Description](#description)
+  - [Release notes](#release-notes)
+    - [v1.1.0](#v110)
   - [Table of contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
