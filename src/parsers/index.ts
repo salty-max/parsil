@@ -1,4 +1,5 @@
 export * from './between'
+export * from './bit'
 export * from './char'
 export * from './choice'
 export * from './digits'

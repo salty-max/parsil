@@ -32,6 +32,7 @@ Key Features:
       - [.errorMap](#errormap)
     - [Functions](#functions)
       - [anyChar](#anychar)
+      - [bit](#bit)
       - [between](#between)
       - [char](#char)
       - [choice](#choice)
@@ -40,12 +41,14 @@ Key Features:
       - [letters](#letters)
       - [many](#many)
       - [manyOne](#manyone)
+      - [one](#one)
       - [recursive](#recursive)
       - [regex](#regex)
       - [sepBy](#sepby)
       - [sepByOne](#sepbyone)
       - [sequenceOf](#sequenceof)
       - [str](#str)
+      - [zero](#zero)
 
 ## Installation
 
@@ -234,6 +237,22 @@ anyChar.run('😉')
 //    }
 ```
 
+#### bit
+`bit` parses bit at index from a Dataview
+
+**Example**
+
+```javascript
+const parser = bit
+const data = new Uint8Array([42]).buffer
+parser.run(new Dataview(data))
+// -> {
+//      isError: false,
+//      result: 0,
+//      index: 1,
+//    }
+```
+
 #### between
 
 `between` takes 3 parsers, a _left_ parser, a _right_ parser, and a _value_ parser, returning a new parser that matches a value matched by the _value_ parser, between values matched by the _left_ parser and the _right_ parser.
@@ -403,7 +422,7 @@ newParser.run('abcabcabcabc')
 newParser.run('')
 // -> {
 //   isError: true,
-//   error: "ParseError @ index 0 -> manyOne: Expecting to match at least one value",
+//   error: "ParseError @ index 0 -> manyOne: Expected to match at least one value",
 //   index: 0,
 //   data: null
 // }
@@ -411,10 +430,33 @@ newParser.run('')
 newParser.run('12345')
 // -> {
 //   isError: true,
-//   error: "ParseError @ index 0 -> manyOne: Expecting to match at least one value",
+//   error: "ParseError @ index 0 -> manyOne: Expected to match at least one value",
 //   index: 0,
 //   data: null
 // }
+```
+
+#### one
+`one` parses bit at index from a Dataview and expects it to be 1
+
+**Example**
+
+```javascript
+const parser = one
+const data = new Uint8Array([234]).buffer
+parser.run(new Dataview(data))
+// -> {
+//      isError: false,
+//      result: 1,
+//      index: 1,
+//    }
+const data = new Uint8Array([42]).buffer
+parser.run(new Dataview(data))
+// -> {
+//      isError: true,
+//      error: "ParseError @ index 0 -> one: Expected 1 but got 0",
+//      index: 0,
+//    }
 ```
 
 #### recursive
@@ -513,7 +555,7 @@ newParser.run('some,comma,separated,words')
 newParser.run('1,2,3')
 // -> {
 //      isError: true,
-//      error: "ParseError @ index0 -> sepByOne: Expecting to match at least one separated value",
+//      error: "ParseError @ index0 -> sepByOne: Expected to match at least one separated value",
 //      index: 0,
 //    }
 ```
@@ -557,5 +599,28 @@ str('hello').run('hello world')
 //      isError: false,
 //      result: "hello",
 //      index: 5,
+//    }
+```
+
+#### zero
+`zero` parses bit at index from a Dataview and expects it to be 0
+
+**Example**
+
+```javascript
+const parser = zero
+const data = new Uint8Array([42]).buffer
+parser.run(new Dataview(data))
+// -> {
+//      isError: false,
+//      result: 0,
+//      index: 1,
+//    }
+const data = new Uint8Array([234]).buffer
+parser.run(new Dataview(data))
+// -> {
+//      isError: true,
+//      error: "ParseError @ index 0 -> zero: Expected 0 but got 1",
+//      index: 0,
 //    }
 ```
