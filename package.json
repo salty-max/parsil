@@ -1,10 +1,10 @@
 {
   "name": "parsil",
   "version": "0.1.0",
-  "description": "A parser-combinator written in Typescript",
+  "description": "A parser combinators library written in Typescript",
   "main": "dist/index.js",
   "repository": "https://github.com/salty-max/parsil",
-  "author": "Maxime Blanc",
+  "author": "Maxime Blanc <max@jellycat.fr>",
   "license": "MIT",
   "types": "dist/index.d.ts",
   "module": "dist/index.esm.js",
