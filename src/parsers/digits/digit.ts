@@ -10,7 +10,7 @@ const digitRegex = /^[0-9]/
  * @example
  * const parser = digit;
  * parser.run('1'); // returns { isError: false, result: '1', index: 1 }
- * parser.run('a'); // returns { isError: true, error: "ParseError @ index 0 -> digit: Expecting digit, got 'a'", index: 0 }
+ * parser.run('a'); // returns { isError: true, error: "ParseError @ index 0 -> digit: Expected digit, got 'a'", index: 0 }
  *
  * @returns {Parser<string>} A parser that reads a single digit from the input.
  */
@@ -29,13 +29,13 @@ export const digit: Parser<string> = new Parser((state) => {
         ? updateState(state, index + charWidth, char)
         : updateError(
             state,
-            `ParseError @ index ${index} -> digit: Expecting digit, got '${char}'`
+            `ParseError @ index ${index} -> digit: Expected digit, but got '${char}'`
           )
     }
   }
 
   return updateError(
     state,
-    `ParseError @ index ${index} -> digit: Expecting digit, but got end of input.`
+    `ParseError @ index ${index} -> digit: Expected digit, but got end of input.`
   )
 })
