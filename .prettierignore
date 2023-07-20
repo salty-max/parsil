@@ -4,3 +4,4 @@ dist/
 src/instructions.ts
 src/parsers/choice/
 src/parsers/sequence-of/
+src/parsers/exactly/

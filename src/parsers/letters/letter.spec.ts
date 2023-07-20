@@ -18,7 +18,7 @@ describe('letter', () => {
 
     expect(result).toStrictEqual({
       isError: true,
-      error: "ParseError @ index 0 -> letter: Expecting letter, got '1'",
+      error: "ParseError @ index 0 -> letter: Expected letter, but got '1'",
       index: 0,
     })
   })
@@ -30,7 +30,7 @@ describe('letter', () => {
     expect(result).toStrictEqual({
       isError: true,
       error:
-        'ParseError @ index 0 -> letter: Expecting letter, but got end of input.',
+        'ParseError @ index 0 -> letter: Expected letter, but got end of input.',
       index: 0,
     })
   })

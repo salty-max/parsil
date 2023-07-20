@@ -53,6 +53,7 @@ Key Features:
       - [coroutine](#coroutine)
       - [digit](#digit)
       - [digits](#digits)
+      - [exactly](#exactly)
       - [fail](#fail)
       - [int](#int)
       - [letter](#letter)
@@ -162,8 +163,8 @@ str('hello').fork(
     return result;
   }
 );
-// [console.log] ParseError @ index 0 -> str: Expecting string 'hello', got 'farew...'
-// [console.log] Object {isError: true, error: "ParseError @ index 0 -> str: Expecting string 'hello',…", target: "farewell", index: 0, …}
+// [console.log] ParseError @ index 0 -> str: Expected string 'hello', got 'farew...'
+// [console.log] Object {isError: true, error: "ParseError @ index 0 -> str: Expected string 'hello',…", target: "farewell", index: 0, …}
 // "goodbye"
 ```
 #### .map
@@ -233,7 +234,7 @@ const newParser = letters.errorMap(({error, index}) => `Old message was: [${erro
 newParser.run('1234')
 // -> {
 //      isError: true,
-//      error: "Old message was: [ParseError @ index 0 -> letters: Expecting letters] @ index 0",
+//      error: "Old message was: [ParseError @ index 0 -> letters: Expected letters] @ index 0",
 //      index: 0,
 //    }
 ```
@@ -301,7 +302,7 @@ const betweenRoundBrackets = between (char ('(')) (char (')'));
 betweenRoundBrackets (many (letters)).run('(hello world)')
 // -> {
 //      isError: true,
-//      error: "ParseError @ index 6 -> between: Expecting character ')', got ' '",
+//      error: "ParseError @ index 6 -> between: Expected character ')', got ' '",
 //      index: 6,
 //    }
 ```
@@ -391,6 +392,40 @@ digits.run('99 bottles of beer on the wall')
 //      isError: false,
 //      result: "99",
 //      index: 2,
+//    }
+```
+
+#### exactly
+
+`exactly` takes a positive number and returns a function. That function takes a parser and returns a new parser which matches the given parser the specified number of times.
+
+**Example**
+
+```JavaScript
+const newParser = exactly (4)(letter)
+
+newParser.run('abcdef')
+// -> {
+//      isError: false,
+//      result: [ "a", "b", "c", "d" ],
+//      index: 4,
+//      data: null
+//    }
+
+newParser.run('abc')
+// -> {
+//      isError: true,
+//      error: 'ParseError (position 0): Expecting 4 letter, but got end of input.',
+//      index: 0,
+//      data: null
+//    }
+
+newParser.run('12345')
+// -> {
+//      isError: true,
+//      error: 'ParseError (position 0): Expecting 4 letter, but got '1'',
+//      index: 0,
+//      data: null
 //    }
 ```
 
@@ -847,7 +882,7 @@ newParser.run('hello           world')
 newParser.run('helloworld')
 // -> {
 //      isError: true,
-//      error: "ParseError 'many1' (position 5): Expecting to match at least one value",
+//      error: "ParseError 'many1' (position 5): Expected to match at least one value",
 //      index: 5,
 //    }
 ```

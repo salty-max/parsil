@@ -9,7 +9,7 @@ const wsRegex = /^\s+/
  * @example
  * const parser = P.whitespace;
  * parser.run('  \t\n'); // returns { isError: false, result: '  \t\n', index: 4 }
- * parser.run('abc'); // returns { isError: true, error: "ParseError @ index 0 -> regex: Expecting regex match", index: 0 }
+ * parser.run('abc'); // returns { isError: true, error: "ParseError @ index 0 -> regex: Expected regex match", index: 0 }
  *
  * @returns {Parser<string>} A parser that matches any whitespace character.
  */

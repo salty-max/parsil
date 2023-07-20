@@ -10,7 +10,7 @@ const letterRegex = /^[A-Za-z]/
  * @example
  * const parser = letter;
  * parser.run('a'); // returns { isError: false, result: 'a', index: 1 }
- * parser.run('1'); // returns { isError: true, error: "ParseError @ index 0 -> letter: Expecting letter, got '1'", index: 0 }
+ * parser.run('1'); // returns { isError: true, error: "ParseError @ index 0 -> letter: Expected letter, got '1'", index: 0 }
  *
  * @returns {Parser<string>} A parser that reads a single letter from the input.
  */
@@ -27,13 +27,13 @@ export const letter: Parser<string> = new Parser((state) => {
         ? updateState(state, index + charWidth, char)
         : updateError(
             state,
-            `ParseError @ index ${index} -> letter: Expecting letter, got '${char}'`
+            `ParseError @ index ${index} -> letter: Expected letter, but got '${char}'`
           )
     }
   }
 
   return updateError(
     state,
-    `ParseError @ index ${index} -> letter: Expecting letter, but got end of input.`
+    `ParseError @ index ${index} -> letter: Expected letter, but got end of input.`
   )
 })
