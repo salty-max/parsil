@@ -32,20 +32,27 @@ Key Features:
       - [.errorMap](#errormap)
     - [Functions](#functions)
       - [anyChar](#anychar)
+      - [bit](#bit)
       - [between](#between)
       - [char](#char)
       - [choice](#choice)
       - [digits](#digits)
       - [fail](#fail)
+      - [int](#int)
       - [letters](#letters)
       - [many](#many)
       - [manyOne](#manyone)
+      - [one](#one)
+      - [rawString](#rawstring)
       - [recursive](#recursive)
       - [regex](#regex)
       - [sepBy](#sepby)
       - [sepByOne](#sepbyone)
       - [sequenceOf](#sequenceof)
+      - [succeed](#succeed)
       - [str](#str)
+      - [uint](#uint)
+      - [zero](#zero)
 
 ## Installation
 
@@ -234,6 +241,22 @@ anyChar.run('😉')
 //    }
 ```
 
+#### bit
+`bit` parses a bit at index from a Dataview
+
+**Example**
+
+```javascript
+const parser = bit
+const data = new Uint8Array([42]).buffer
+parser.run(new Dataview(data))
+// -> {
+//      isError: false,
+//      result: 0,
+//      index: 1,
+//    }
+```
+
 #### between
 
 `between` takes 3 parsers, a _left_ parser, a _right_ parser, and a _value_ parser, returning a new parser that matches a value matched by the _value_ parser, between values matched by the _left_ parser and the _right_ parser.
@@ -334,6 +357,22 @@ fail('Nope').run('hello world')
 //    }
 ```
 
+#### int
+`int` reads the next `n` bits from the input and interprets them as an signed integer.
+
+**Example**
+
+```javascript
+const parser = int(8)
+const input = new Uint8Array([-42])
+const result = parser.run(new DataView(input.buffer))
+// -> {
+//      isError: false,
+//      result: -42,
+//      index: 8,
+//    }
+```  
+
 #### letters
 
 `letters` matches **one or more** alphabetical letter `/[a-zA-Z]/`.
@@ -403,7 +442,7 @@ newParser.run('abcabcabcabc')
 newParser.run('')
 // -> {
 //   isError: true,
-//   error: "ParseError @ index 0 -> manyOne: Expecting to match at least one value",
+//   error: "ParseError @ index 0 -> manyOne: Expected to match at least one value",
 //   index: 0,
 //   data: null
 // }
@@ -411,10 +450,60 @@ newParser.run('')
 newParser.run('12345')
 // -> {
 //   isError: true,
-//   error: "ParseError @ index 0 -> manyOne: Expecting to match at least one value",
+//   error: "ParseError @ index 0 -> manyOne: Expected to match at least one value",
 //   index: 0,
 //   data: null
 // }
+```
+
+#### one
+`one` parses bit at index from a Dataview and expects it to be 1
+
+**Example**
+
+```javascript
+const parser = one
+const data = new Uint8Array([234]).buffer
+parser.run(new Dataview(data))
+// -> {
+//      isError: false,
+//      result: 1,
+//      index: 1,
+//    }
+const data = new Uint8Array([42]).buffer
+parser.run(new Dataview(data))
+// -> {
+//      isError: true,
+//      error: "ParseError @ index 0 -> one: Expected 1 but got 0",
+//      index: 0,
+//    }
+```
+
+#### rawString
+
+`rawString` matches a string of characters exactly as provided.
+
+Each character in the input string is converted to its corresponding ASCII code and a parser is created for each ASCII code.
+
+The resulting parsers are chained together using sequenceOf to ensure they are parsed in order.
+
+The parser succeeds if all characters are matched in the input and fails otherwise.
+
+**Example**
+```javascript
+const parser = rawString('Hello')
+parser.run('Hello')
+// -> {
+//      isError: false,
+//      result: [72, 101, 108, 108, 111],
+//      index: 40,
+//    }
+parser.run('World')
+// -> {
+//      isError: true,
+//      error: "ParseError -> rawString: Expected character H, but got W",
+//      index: 8,
+//    }
 ```
 
 #### recursive
@@ -513,7 +602,7 @@ newParser.run('some,comma,separated,words')
 newParser.run('1,2,3')
 // -> {
 //      isError: true,
-//      error: "ParseError @ index0 -> sepByOne: Expecting to match at least one separated value",
+//      error: "ParseError @ index0 -> sepByOne: Expected to match at least one separated value",
 //      index: 0,
 //    }
 ```
@@ -545,6 +634,23 @@ newParser.run('hello world')
 //    }
 ```
 
+#### succeed
+
+`succeed` is a parser combinator that always succeeds and produces a constant value. It ignores the input state and returns the specified value as the result.
+
+**Example**
+
+```javascript
+const parser = succeed(42);
+parser.run("hello world");
+// Returns:
+// {
+//   isError: false,
+//   result: 42,
+//   index: 0
+// }
+```
+
 #### str
 
 `str` tries to match a given string against its input.
@@ -557,5 +663,44 @@ str('hello').run('hello world')
 //      isError: false,
 //      result: "hello",
 //      index: 5,
+//    }
+```
+
+#### uint
+`uint` reads the next `n` bits from the input and interprets them as an unsigned integer.
+
+**Example**
+
+```javascript
+const parser = uint(8)
+const input = new Uint8Array([42])
+const result = parser.run(new DataView(input.buffer))
+// -> {
+//      isError: false,
+//      result: 42,
+//      index: 8,
+//    }
+```  
+
+#### zero
+`zero` parses bit at index from a Dataview and expects it to be 0
+
+**Example**
+
+```javascript
+const parser = zero
+const data = new Uint8Array([42]).buffer
+parser.run(new Dataview(data))
+// -> {
+//      isError: false,
+//      result: 0,
+//      index: 1,
+//    }
+const data = new Uint8Array([234]).buffer
+parser.run(new Dataview(data))
+// -> {
+//      isError: true,
+//      error: "ParseError @ index 0 -> zero: Expected 0 but got 1",
+//      index: 0,
 //    }
 ```

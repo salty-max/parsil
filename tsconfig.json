@@ -5,7 +5,7 @@
     "moduleResolution": "Node",
     "esModuleInterop": false,
     "strict": true,
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "outDir": "dist",
     "declaration": true
   },

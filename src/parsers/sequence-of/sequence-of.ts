@@ -35,7 +35,7 @@ export function sequenceOf(parsers: Parser<any>[]): Parser<any[]> {
   return new Parser((state) => {
     if (state.isError) return state
 
-    const results = []
+    const results: Array<any> = []
     let nextState = state
 
     for (const p of parsers) {

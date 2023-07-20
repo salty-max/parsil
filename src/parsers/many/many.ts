@@ -20,7 +20,7 @@ export const many = function many<T>(parser: Parser<T>): Parser<T[]> {
   return new Parser((state) => {
     if (state.isError) return state
 
-    const results = []
+    const results: Array<T> = []
     let done = false
     let nextState = state
 
