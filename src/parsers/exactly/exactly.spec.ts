@@ -4,7 +4,7 @@ import { letter, digit } from "../"
 describe('exactly', () => {
   it('should apply the parser exactly n times and collect the results in an array', () => {
     const parser = exactly(3)(letter);
-const result = parser.run('abc');
+    const result = parser.run('abc');
 
     expect(result).toEqual({
       isError: false,
