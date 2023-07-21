@@ -8,6 +8,8 @@ import {
   updateError,
   updateResult,
   updateState,
+  isOk,
+  isError,
 } from './parser'
 export * from './parsers'
 import {
@@ -25,6 +27,8 @@ export {
   encoder,
   decoder,
   Parser,
+  isOk,
+  isError,
   updateError,
   updateState,
   updateResult,
