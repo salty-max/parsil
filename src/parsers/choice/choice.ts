@@ -1,5 +1,4 @@
 import { Parser, updateError } from '../../parser'
-import { UnionToIntersection } from '../../types';
 
 /**
  * `choice` is a parser combinator that tries each parser in a given list of parsers, in order,
@@ -18,11 +17,15 @@ import { UnionToIntersection } from '../../types';
  * @throws {Error} If `parsers` is an empty list.
  * @returns {Parser<any>} A parser that applies the first successful parser in `parsers`.
  */
-export function choice<T extends Parser<any>[]>(
+export function choice<T extends Parser<any, any>[]>(
   parsers: T
-): Parser<UnionToIntersection<ReturnType<T[number]['p']>>> {
+): Parser<{ [K in keyof T]: T[K] extends Parser<infer R> ? R : never }> {
   if (parsers.length === 0) {
     throw new Error('choice requires a non-empty list of parsers');
+  }
+
+  if (parsers.length === 1) {
+    return parsers[0]
   }
 
   return new Parser((state) => {
@@ -30,7 +33,7 @@ export function choice<T extends Parser<any>[]>(
 
     for (const p of parsers) {
       const out = p.p(state);
-      if (!out.isError) return out;
+      if (!out.isError) return out
     }
 
     return updateError(
