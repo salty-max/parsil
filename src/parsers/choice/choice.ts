@@ -1,4 +1,4 @@
-import { Parser, updateError } from '../../parser'
+import { Parser, ParserState, updateError } from '../../parser'
 
 /**
  * `choice` is a parser combinator that tries each parser in a given list of parsers, in order,
@@ -19,13 +19,13 @@ import { Parser, updateError } from '../../parser'
  */
 export function choice<T extends Parser<any, any>[]>(
   parsers: T
-): Parser<{ [K in keyof T]: T[K] extends Parser<infer R> ? R : never }> {
+): Parser<T[number] extends Parser<infer U> ? U : never> {
   if (parsers.length === 0) {
     throw new Error('choice requires a non-empty list of parsers');
   }
 
   if (parsers.length === 1) {
-    return parsers[0]
+    return parsers[0] as Parser<T[number] extends Parser<infer U> ? U : never>
   }
 
   return new Parser((state) => {
@@ -33,7 +33,7 @@ export function choice<T extends Parser<any, any>[]>(
 
     for (const p of parsers) {
       const out = p.p(state);
-      if (!out.isError) return out
+      if (!out.isError) return out as ParserState<T[number] extends Parser<infer U> ? U : never, string>;
     }
 
     return updateError(
