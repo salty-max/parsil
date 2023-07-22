@@ -35,6 +35,12 @@ Key Features:
 ### v1.3.0
 
 - Improved type inference in choice, sequenceOf and exactly parsers using variadic generics from Typescript 4.X
+### v1.4.0
+
+- New parsers
+  - [lookAhead](#lookAhead)
+  - [startOfInput](#startOfInput)
+  - [endOfInput](#endOfInput)
 
 ## Table of contents
 
@@ -44,6 +50,7 @@ Key Features:
     - [v1.1.0](#v110)
     - [v1.2.0](#v120)
     - [v1.3.0](#v130)
+    - [v1.4.0](#v140)
   - [Table of contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
