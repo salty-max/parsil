@@ -41,6 +41,10 @@ Key Features:
   - [lookAhead](#lookAhead)
   - [startOfInput](#startOfInput)
   - [endOfInput](#endOfInput)
+### v1.5.0
+
+- New parser
+  - [anyCharExcept](#anyCharExcept)
 
 ## Table of contents
 
@@ -51,6 +55,7 @@ Key Features:
     - [v1.2.0](#v120)
     - [v1.3.0](#v130)
     - [v1.4.0](#v140)
+    - [v1.5.0](#v150)
   - [Table of contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
