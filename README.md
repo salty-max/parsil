@@ -63,11 +63,13 @@ Key Features:
       - [coroutine](#coroutine)
       - [digit](#digit)
       - [digits](#digits)
+      - [endOfInput](#endofinput)
       - [exactly](#exactly)
       - [fail](#fail)
       - [int](#int)
       - [letter](#letter)
       - [letters](#letters)
+      - [lookAhead](#lookahead)
       - [many](#many)
       - [manyOne](#manyone)
       - [one](#one)
@@ -80,6 +82,7 @@ Key Features:
       - [sepBy](#sepby)
       - [sepByOne](#sepbyone)
       - [sequenceOf](#sequenceof)
+      - [startOfInput](#startofinput)
       - [succeed](#succeed)
       - [str](#str)
       - [uint](#uint)
@@ -405,6 +408,35 @@ digits.run('99 bottles of beer on the wall')
 //    }
 ```
 
+#### endOfInput
+
+`endOfInput` is a parser that only succeeds when there is no more input to be parsed.
+
+**Example**
+
+```JavaScript
+const newParser = sequenceOf ([
+  str ('abc'),
+  endOfInput
+]);
+
+newParser.run('abc')
+// -> {
+//      isError: false,
+//      result: [ "abc", null ],
+//      index: 3,
+//      data: null
+//    }
+
+newParser.run('')
+// -> {
+//      isError: true,
+//      error: "ParseError (position 0): Expecting string 'abc', but got end of input.",
+//      index: 0,
+//      data: null
+//    }
+```
+
 #### exactly
 
 `exactly` takes a positive number and returns a function. That function takes a parser and returns a new parser which matches the given parser the specified number of times.
@@ -497,6 +529,28 @@ letters.run('hello world')
 //      isError: false,
 //      result: "hello",
 //      index: 5,
+//    }
+```
+
+#### lookAhead
+
+`lookAhead` takes _look ahead_ parser, and returns a new parser that matches using the _look ahead_ parser, but without consuming input.
+
+**Example**
+
+```JavaScript
+const newParser = sequenceOf ([
+  str ('hello '),
+  lookAhead (str ('world')),
+  str ('wor')
+]);
+
+newParser.run('hello world')
+// -> {
+//      isError: false,
+//      result: [ "hello ", "world", "wor" ],
+//      index: 9,
+//      data: null
 //    }
 ```
 
@@ -818,6 +872,36 @@ newParser.run('hello world')
 //      isError: false,
 //      result: [ "he", "llo", " ", "world" ],
 //      index: 11,
+//    }
+```
+
+#### startOfInput
+
+`startOfInput` is a parser that only succeeds when the parser is at the beginning of the input.
+
+**Example**
+
+```JavaScript
+const mustBeginWithHeading = sequenceOf([
+    startOfInput,
+    str("# ")
+  ]);
+const newParser = between(mustBeginWithHeading)(endOfInput)(everyCharUntil(endOfInput));
+
+newParser.run('# Heading');
+// -> {
+//      isError: false,
+//      result: "# Heading",
+//      index: 9,
+//      data: null
+//    }
+
+newParser.run(' # Heading');
+// -> {
+//      isError: true,
+//      error: "ParseError (position 0): Expecting string '# ', got ' #...'",
+//      index: 0,
+//      data: null
 //    }
 ```
 
