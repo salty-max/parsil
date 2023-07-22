@@ -63,6 +63,7 @@ Key Features:
       - [.errorMap](#errormap)
     - [Functions](#functions)
       - [anyChar](#anychar)
+      - [anyCharExcept](#anycharexcept)
       - [bit](#bit)
       - [between](#between)
       - [char](#char)
@@ -280,6 +281,31 @@ anyChar.run('😉')
 //      isError: false,
 //      result: "😉",
 //      index: 4,
+//    }
+```
+
+#### anyCharExcept
+
+`anyCharExcept` takes a _exception_ parser and returns a new parser which matches **exactly one** _character_, if it is not matched by the _exception_ parser.
+
+**Example**
+
+```JavaScript
+anyCharExcept (char ('.')).run('This is a sentence.')
+// -> {
+//   isError: false,
+//   result: 'T',
+//   index: 1,
+//   data: null
+// }
+
+const manyExceptDot = many (anyCharExcept (char ('.')))
+manyExceptDot.run('This is a sentence.')
+// -> {
+//      isError: false,
+//      result: ['T', 'h', 'i', 's', ' ', 'i', 's', ' ', 'a', ' ', 's', 'e', 'n', 't', 'e', 'n', 'c', 'e'],
+//      index: 18,
+//      data: null
 //    }
 ```
 
