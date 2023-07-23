@@ -1,6 +1,6 @@
 {
   "name": "parsil",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "A parser combinators library written in Typescript",
   "main": "dist/index.js",
   "repository": "https://github.com/salty-max/parsil",
