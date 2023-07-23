@@ -46,6 +46,12 @@ Key Features:
 - New parser
   - [anyCharExcept](#anyCharExcept)
 
+### v1.6.0
+
+- New parser
+  - [everythingUntil](#everythingUntil)
+  - [everyCharUntil](#everyCharUntil)
+
 ## Table of contents
 
 - [Parsil](#parsil)
@@ -56,6 +62,7 @@ Key Features:
     - [v1.3.0](#v130)
     - [v1.4.0](#v140)
     - [v1.5.0](#v150)
+    - [v1.6.0](#v160)
   - [Table of contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
@@ -77,6 +84,8 @@ Key Features:
       - [digit](#digit)
       - [digits](#digits)
       - [endOfInput](#endofinput)
+      - [everyCharUntil](#everycharuntil)
+      - [everythingUntil](#everythinguntil)
       - [exactly](#exactly)
       - [fail](#fail)
       - [int](#int)
@@ -469,8 +478,70 @@ newParser.run('abc')
 newParser.run('')
 // -> {
 //      isError: true,
-//      error: "ParseError (position 0): Expecting string 'abc', but got end of input.",
+//      error: "ParseError @ index 0 -> endOfInput: Expecting string 'abc', but got end of input.",
 //      index: 0,
+//      data: null
+//    }
+```
+
+#### everyCharUntil
+
+`everyCharUntil` takes a _termination_ parser and returns a new parser which matches every possible _character_ up until a value is matched by the _termination_ parser. When a value is matched by the _termination_ parser, it is not "consumed".
+
+**Example**
+
+```JavaScript
+everyCharUntil (char ('.')).run('This is a sentence.This is another sentence')
+// -> {
+//      isError: false,
+//      result: 'This is a sentence',
+//      index: 18,
+//      data: null
+//    }
+
+// termination parser doesn't consume the termination value
+const newParser = sequenceOf ([
+  everyCharUntil (char ('.')),
+  str ('This is another sentence')
+]);
+
+newParser.run('This is a sentence.This is another sentence')
+// -> {
+//      isError: true,
+//      error: "ParseError (position 18): Expecting string 'This is another sentence', got '.This is another sentenc...'",
+//      index: 18,
+//      data: null
+//    }
+```
+
+#### everythingUntil
+
+**Note**: Between 2.x and 3.x, the definition of the `everythingUntil` has changed. In 3.x, what was previously `everythingUntil` is now [`everyCharUntil`](#everyCharUntil).
+
+`everythingUntil` takes a _termination_ parser and returns a new parser which matches every possible _numerical byte_ up until a value is matched by the _termination_ parser. When a value is matched by the _termination_ parser, it is not "consumed".
+
+**Example**
+
+```JavaScript
+everythingUntil (char ('.')).run('This is a sentence.This is another sentence')
+// -> {
+//      isError: false,
+//      result: [84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 115, 101, 110, 116, 101, 110, 99, 101],
+//      index: 18,
+//      data: null
+//    }
+
+// termination parser doesn't consume the termination value
+const newParser = sequenceOf ([
+  everythingUntil (char ('.')),
+  str ('This is another sentence')
+]);
+
+newParser.run('This is a sentence.This is another sentence')
+// -> {
+//      isError: true,
+//      error: "ParseError (position 18): Expecting string 'This is another sentence', got '.This is another sentenc...'",
+//      index: 18,
 //      data: null
 //    }
 ```
@@ -495,7 +566,7 @@ newParser.run('abcdef')
 newParser.run('abc')
 // -> {
 //      isError: true,
-//      error: 'ParseError (position 0): Expecting 4 letter, but got end of input.',
+//      error: 'ParseError @ index 0 -> exactly: Expecting 4 letter, but got end of input.',
 //      index: 0,
 //      data: null
 //    }
@@ -503,7 +574,7 @@ newParser.run('abc')
 newParser.run('12345')
 // -> {
 //      isError: true,
-//      error: 'ParseError (position 0): Expecting 4 letter, but got '1'',
+//      error: 'ParseError @ index 0 -> exactly: Expecting 4 letter, but got '1'',
 //      index: 0,
 //      data: null
 //    }
@@ -937,7 +1008,7 @@ newParser.run('# Heading');
 newParser.run(' # Heading');
 // -> {
 //      isError: true,
-//      error: "ParseError (position 0): Expecting string '# ', got ' #...'",
+//      error: "ParseError @ index 0 -> startOfInput: Expecting string '# ', got ' #...'",
 //      index: 0,
 //      data: null
 //    }
