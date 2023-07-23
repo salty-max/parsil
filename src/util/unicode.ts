@@ -1,16 +1,16 @@
-import { TextEncoder, TextDecoder } from 'util'
 let text: { Encoder: typeof TextEncoder; Decoder: typeof TextDecoder }
 
-if (typeof TextEncoder !== 'undefined') {
-  text = { Encoder: TextEncoder, Decoder: TextDecoder }
-} else {
-  try {
-    text = { Encoder: TextEncoder, Decoder: TextDecoder }
-  } catch (err) {
-    throw new Error(
-      'Parsil requires TextEncoder and TextDecoder to be polyfilled'
-    )
-  }
+const textEncoder =
+  TextEncoder === undefined ? require('util').TextEncoder : TextEncoder
+const textDecoder =
+  TextDecoder === undefined ? require('util').TextDecoder : TextDecoder
+
+try {
+  text = { Encoder: textEncoder, Decoder: textDecoder }
+} catch (err) {
+  throw new Error(
+    'Parsil requires TextEncoder and TextDecoder to be polyfilled'
+  )
 }
 
 export const encoder = new text.Encoder()
