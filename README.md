@@ -516,8 +516,6 @@ newParser.run('This is a sentence.This is another sentence')
 
 #### everythingUntil
 
-**Note**: Between 2.x and 3.x, the definition of the `everythingUntil` has changed. In 3.x, what was previously `everythingUntil` is now [`everyCharUntil`](#everyCharUntil).
-
 `everythingUntil` takes a _termination_ parser and returns a new parser which matches every possible _numerical byte_ up until a value is matched by the _termination_ parser. When a value is matched by the _termination_ parser, it is not "consumed".
 
 **Example**
