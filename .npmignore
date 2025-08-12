@@ -6,13 +6,11 @@ examples/
 .gitignore
 .nvmrc
 .yarnrc
-.eslintrc.js
+eslint.config.js
 .eslintignore
 .prettierrc
 .prettierignore
 tsconfig.json
-jest.config.js
-rollup.config.mjs
 *.log
 **/*.spec.ts
 LICENSE
