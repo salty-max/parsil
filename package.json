@@ -1,6 +1,6 @@
 {
   "name": "parsil",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "description": "A parser combinators library written in Typescript",
   "repository": "https://github.com/salty-max/parsil",
   "author": "Maxime Blanc <max@jellycat.fr>",
@@ -42,5 +42,21 @@
   "engines": {
     "node": ">=20",
     "bun": ">=1.1"
-  }
+  },
+  "keywords": [
+    "parser",
+    "parser-combinator",
+    "combinators",
+    "parsing",
+    "functional",
+    "typescript",
+    "esm",
+    "utf8",
+    "binary",
+    "bit",
+    "dataview",
+    "grammar",
+    "peg",
+    "bnf"
+  ]
 }
