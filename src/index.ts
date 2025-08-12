@@ -12,6 +12,7 @@ import {
   isError,
 } from './parser'
 export * from './parsers'
+import * as Parsers from './parsers'
 import {
   decoder,
   encoder,
@@ -37,4 +38,21 @@ export {
   getNextCharWidth,
   getString,
   getUtf8Char,
+}
+
+export default {
+  encoder,
+  decoder,
+  Parser,
+  isOk,
+  isError,
+  updateError,
+  updateState,
+  updateResult,
+  InputTypes,
+  getCharacterLength,
+  getNextCharWidth,
+  getString,
+  getUtf8Char,
+  ...Parsers,
 }

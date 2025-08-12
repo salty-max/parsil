@@ -27,20 +27,24 @@ Key Features:
   - [possibly](#possibly)
   - [optionalWhitespace](#optionalwhitespace)
   - [whitespace](#whitespace)
+
 ### v1.2.0
 
 - New parsers
   - [exactly](#exactly)
   - [peek](#peek)
+
 ### v1.3.0
 
 - Improved type inference in choice, sequenceOf and exactly parsers using variadic generics from Typescript 4.X
+
 ### v1.4.0
 
 - New parsers
   - [lookAhead](#lookAhead)
   - [startOfInput](#startOfInput)
   - [endOfInput](#endOfInput)
+
 ### v1.5.0
 
 - New parser
@@ -120,24 +124,24 @@ npm install parsil
 ```
 
 ## Usage
+
 ```javascript
-import P from 'your-library-name';
+import P from 'your-library-name'
 
 // Define parsers
-const digitParser = P.digits();
-const letterParser = P.letters();
-const wordParser = P.manyOne(letterParser);
+const digitParser = P.digits()
+const letterParser = P.letters()
+const wordParser = P.manyOne(letterParser)
 
 // Parse input
-const input = 'Hello123';
-const result = wordParser.parse(input);
+const input = 'Hello123'
+const result = wordParser.parse(input)
 
 if (result.isSuccess) {
-  console.log('Parsing succeeded:', result.value);
+  console.log('Parsing succeeded:', result.value)
 } else {
-  console.error('Parsing failed:', result.error);
+  console.error('Parsing failed:', result.error)
 }
-
 ```
 
 ## API
@@ -159,13 +163,13 @@ str('hello').run('hello')
 //    }
 ```
 
-
 #### .fork
 
 Takes an input to parse, and two functions to handle the results of parsing:
-  - an error function that is called when parsing fails
-  - a success function that is called when parsing is successful.
-    
+
+- an error function that is called when parsing fails
+- a success function that is called when parsing is successful.
+
 The fork method will run the parser on the input and, depending on the outcome, call the appropriate function.
 
 **Example**
@@ -202,6 +206,7 @@ str('hello').fork(
 // [console.log] Object {isError: true, error: "ParseError @ index 0 -> str: Expected string 'hello',…", target: "farewell", index: 0, …}
 // "goodbye"
 ```
+
 #### .map
 
 `.map` transforms the parser into a new parser that applies a function to the result of the original parser.
@@ -224,6 +229,7 @@ newParser.run('hello world')
 //      index: 5,
 //    }
 ```
+
 #### .chain
 
 `.chain` transforms the parser into a new parser by applying a function to the result of the original parser.
@@ -257,6 +263,7 @@ const newParser = lettersThenSpace.chain(matchedValue => {
   }
 });
 ```
+
 #### .errorMap
 
 `.errorMap` is like [.map](#map) but it transforms the error value. The function passed to `.errorMap` gets an object the _current error message_ (`error`) and the _index_ (`index`) that parsing stopped at.
@@ -324,6 +331,7 @@ manyExceptDot.run('This is a sentence.')
 ```
 
 #### bit
+
 `bit` parses a bit at index from a Dataview
 
 **Example**
@@ -414,6 +422,7 @@ newParser.run('hello world')
 `coroutine` is a parser that allows for advanced control flow and composition of parsers.
 
 **Example**
+
 ```javascript
 const parserFn: ParserFn<number> = (yield) => {
   const x = yield(parserA);
@@ -594,6 +603,7 @@ fail('Nope').run('hello world')
 ```
 
 #### int
+
 `int` reads the next `n` bits from the input and interprets them as an signed integer.
 
 **Example**
@@ -607,7 +617,7 @@ const result = parser.run(new DataView(input.buffer))
 //      result: -42,
 //      index: 8,
 //    }
-```  
+```
 
 #### letter
 
@@ -730,6 +740,7 @@ newParser.run('12345')
 ```
 
 #### one
+
 `one` parses bit at index from a Dataview and expects it to be 1
 
 **Example**
@@ -838,6 +849,7 @@ The resulting parsers are chained together using sequenceOf to ensure they are p
 The parser succeeds if all characters are matched in the input and fails otherwise.
 
 **Example**
+
 ```javascript
 const parser = rawString('Hello')
 parser.run('Hello')
@@ -959,7 +971,7 @@ newParser.run('1,2,3')
 
 `sequenceOf` is a parser combinator that accepts an array of parsers and applies them
 in sequence to the input. If all parsers succeed, it returns an array
-of their results. 
+of their results.
 
 If any parser fails, it fails immediately
 and returns the error state of that parser.
@@ -1019,8 +1031,8 @@ newParser.run(' # Heading');
 **Example**
 
 ```javascript
-const parser = succeed(42);
-parser.run("hello world");
+const parser = succeed(42)
+parser.run('hello world')
 // Returns:
 // {
 //   isError: false,
@@ -1045,6 +1057,7 @@ str('hello').run('hello world')
 ```
 
 #### uint
+
 `uint` reads the next `n` bits from the input and interprets them as an unsigned integer.
 
 **Example**
@@ -1089,6 +1102,7 @@ newParser.run('helloworld')
 ```
 
 #### zero
+
 `zero` parses bit at index from a Dataview and expects it to be 0
 
 **Example**

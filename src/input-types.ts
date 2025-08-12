@@ -23,8 +23,8 @@ export const isTypedArray = (x: unknown) =>
   x instanceof Float64Array
 
 export enum InputTypes {
-  STRING = "string",
-  ARRAY_BUFFER = "arrayBuffer",
-  TYPED_ARRAY = "typedArray",
-  DATA_VIEW = "dataView",
+  STRING = 'string',
+  ARRAY_BUFFER = 'arrayBuffer',
+  TYPED_ARRAY = 'typedArray',
+  DATA_VIEW = 'dataView',
 }

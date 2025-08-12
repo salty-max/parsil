@@ -23,7 +23,7 @@ import { getNextCharWidth, getUtf8Char } from '../../util'
  * @param parser The parser not to match
  * @returns A parser that matches any character except the ones matched by the given parser
  */
-export const anyCharExcept = (parser: Parser<any>): Parser<number> =>
+export const anyCharExcept = <T>(parser: Parser<T>): Parser<string> =>
   new Parser(function anyCharExcept$state(state) {
     if (state.isError) return state
     const { dataView, index } = state

@@ -18,7 +18,7 @@ import { Parser } from '../../parser'
  * @param parserThunk A function that returns a parser. This is to avoid immediate execution of the parser.
  * @returns {Parser<T, E>} A parser that can parse recursive structures.
  */
-export const recursive = <T, E>(
+export const recursive = <T, E = string>(
   parserThunk: () => Parser<T, E>
 ): Parser<T, E> =>
   new Parser((state) => {
