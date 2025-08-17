@@ -227,6 +227,70 @@ export class Parser<T, E = string> {
       )
     })
   }
+
+  /**
+   * `.skip` parses `this` and then parses `other`, **keeping the result of `this`** and discarding `other`’s result.
+   * This is equivalent to `this.chain(a => other.map(() => a))`.
+   *
+   * Use this to require a trailing delimiter (e.g., “instruction then newline”), or to parse wrappers and keep only the inner value.
+   *
+   * Backtracking: if `other` fails, the whole `.skip` fails. Any input consumed by `this` remains consumed (i.e., this “commits” to `this`).
+   *
+   * @param other The parser to run after `this`, whose result will be discarded.
+   * @returns A parser that yields the result of `this` if both succeed.
+   */
+  skip<U>(other: Parser<U, E>): Parser<T, E> {
+    return this.chain((a) => other.map(() => a))
+  }
+  /**
+   * `.then` parses `this` and then `other`, **keeping the result of `other`** and discarding `this`’s result.
+   * This is equivalent to `this.chain(() => other)`.
+   *
+   * Use this to parse and discard a known prefix (e.g., a keyword) and keep the following value.
+   *
+   * Backtracking: if `other` fails, the whole `.then` fails; input consumed by `this` stays consumed.
+   *
+   * @param other The parser to run after `this`, whose result will be kept.
+   * @returns A parser that yields the result of `other` if both succeed.
+   */
+  then<U>(other: Parser<U, E>): Parser<U, E> {
+    return this.chain(() => other)
+  }
+
+  /**
+   * `.between` parses `left`, then `this`, then `right`, **keeping only the result of `this`**.
+   * Shorthand for `left.then(this).skip(right)`.
+   *
+   * Typical use: parse delimited constructs like `( expr )`, `[ expr ]`, `{ expr }`.
+   *
+   * Backtracking: if `left` succeeds but `this` or `right` fails, the whole `.between` fails and input consumed so far remains consumed.
+   *
+   * @param left  The opening delimiter parser.
+   * @param right The closing delimiter parser.
+   * @returns A parser yielding the result of `this` if all three succeed.
+   */
+  between<L, R>(left: Parser<L, E>, right: Parser<R, E>): Parser<T, E> {
+    return left.chain(() => this.chain((mid) => right.map(() => mid)))
+  }
+
+  /**
+   * `.lookahead` parses with **no consumption** on success. On success, it returns the same result as `this`
+   * but restores the input position to what it was before parsing. On failure, it fails with the same error.
+   *
+   * Use this to make decisions based on upcoming input without committing to it (e.g., “is the next thing a newline?”).
+   *
+   * Performance note: because the input position is restored, repeated lookaheads at the same offset may re-parse the same region.
+   *
+   * @returns A parser that mirrors success/failure of `this` but never advances the input on success.
+   */
+  lookahead(): Parser<T, E> {
+    return new Parser((state): ParserState<T, E> => {
+      const s1 = this.p(state)
+      if (s1.isError) return s1
+      // succeed but restore the original index/position
+      return { ...s1, index: state.index }
+    })
+  }
 }
 
 /**

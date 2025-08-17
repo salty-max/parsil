@@ -89,9 +89,13 @@ Parsil exposes a `Parser<T>` type and a set of combinators. Everything below is 
 
 * **`.run(input)`** → `{ isError, result?, error?, index }`
 * **`.fork(input, onError, onSuccess)`** → call either callback
-* **`.map(fn)`** → `Parser<U>`
-* **`.chain(fn)`** → `Parser<U>`
+* **`.map<U>(fn: (value: T) => U)`** → `Parser<U>`
+* **`.chain<U>(fn: (value: T) => Parser<U>)`** → `Parser<U>`
 * **`.errorMap(fn)`** → map error details
+* **`.skip<U>(other: Parser<U>)`** → `Parser<T>`
+* **`.then<U>(other: Parser<U>)`** → `Parser<U>` 
+* **`.between<L, R>(left: Parser<L>, right: Parser<R>)`** → `Parser<U>` 
+* **`.lookahead()`** → peek without consuming 
 
 ### Core primitives
 

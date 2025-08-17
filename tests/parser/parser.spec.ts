@@ -55,6 +55,102 @@ describe('Parser', () => {
     })
   })
 
+  describe('Parser.skip', () => {
+    it('keeps left result and requires right', () => {
+      const p = str('foo').skip(str(':'))
+      const res = p.run('foo:bar')
+
+      assertIsOk(res)
+      expect(res.result).toBe('foo')
+      // consumed "foo:" (4 chars)
+      expect(res.index).toBe(4)
+    })
+
+    it('fails if the right parser fails', () => {
+      const p = str('foo').skip(str(':'))
+      const res = p.run('foo?bar')
+
+      assertIsError(res)
+      // Helpful error starts at the position where ":" was expected
+      expect(res.error).toContain(`Tried to match ':'`)
+    })
+  })
+
+  describe('Parser.then', () => {
+    it('discards left and keeps right', () => {
+      const p = str('let').then(str(' ')).then(str('x'))
+      const res = p.run('let x')
+
+      assertIsOk(res)
+      expect(res.result).toBe('x')
+      // consumed "let x" (5 chars)
+      expect(res.index).toBe(5)
+    })
+
+    it('fails if the right parser fails', () => {
+      const p = str('let').then(str(' ')).then(str('x'))
+      const res = p.run('let y')
+
+      assertIsError(res)
+      expect(res.error).toContain(`Tried to match 'x'`)
+    })
+  })
+
+  describe('Parser.between', () => {
+    it('parses between delimiters and keeps the middle', () => {
+      const p = str('foo').between(str('('), str(')'))
+      const res = p.run('(foo)bar')
+
+      assertIsOk(res)
+      expect(res.result).toBe('foo')
+      // consumed "(foo)" (5 chars)
+      expect(res.index).toBe(5)
+    })
+
+    it('fails if the closing delimiter is missing', () => {
+      const p = str('foo').between(str('('), str(')'))
+      const res = p.run('(foo')
+
+      assertIsError(res)
+      expect(res.error).toContain(`Tried to match ')'`)
+    })
+  })
+
+  describe('Parser.lookahead', () => {
+    it('succeeds without consuming input', () => {
+      const la = str('foo').lookahead()
+      const res = la.run('foobar')
+
+      assertIsOk(res)
+      expect(res.result).toBe('foo')
+      // lookahead must not advance the index
+      expect(res.index).toBe(0)
+    })
+
+    it('can be followed by a real consume', () => {
+      const la = str('foo').lookahead()
+      const consume = str('foo')
+
+      const r1 = la.run('foobar')
+      assertIsOk(r1)
+      expect(r1.index).toBe(0)
+
+      const r2 = consume.run('foobar')
+      assertIsOk(r2)
+      expect(r2.index).toBe(3)
+    })
+
+    it('fails when the inner parser fails (no consumption)', () => {
+      const la = str('foo').lookahead()
+      const res = la.run('bar')
+
+      assertIsError(res)
+      expect(res.error).toContain(`Tried to match 'foo'`)
+      // index should still be at 0 on failure reporting
+      expect(res.index).toBe(0)
+    })
+  })
+
   it('should update state with new result using map', () => {
     const parser = new Parser((state) => updateResult(state, 'Hello'))
     const mappedParser = parser.map((result) => result + ', World')
