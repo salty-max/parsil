@@ -4,7 +4,7 @@ import { Parser, ParserState, updateResult } from '../../parser/parser'
  * A function that represents the shape of a parser function.
  * @template T The type of the parser result.
  */
-type ParserFn<T> = (_yield: <K>(parser: Parser<K>) => K) => T
+type ParserFn<T, E = string> = (_yield: <K>(parser: Parser<K, E>) => K) => T
 
 /**
  * `coroutine` is a parser that allows for advanced control flow and composition of parsers.
@@ -23,37 +23,39 @@ type ParserFn<T> = (_yield: <K>(parser: Parser<K>) => K) => T
  * @param {ParserFn<T>} parserFn The parser function that defines the coroutine logic.
  * @returns {Parser<T>} A coroutine parser.
  */
-export const coroutine = <T>(parserFn: ParserFn<T>): Parser<T> => {
-  return new Parser((state) => {
-    let currentValue
+export const coroutine = <T, E = string>(
+  parserFn: ParserFn<T, E>
+): Parser<T, E> => {
+  return new Parser<T, E>((state) => {
+    let currentValue: unknown
     let currentState = state
 
-    const run = <T>(parser: Parser<T>) => {
+    const run = <K>(parser: Parser<K, E>): K => {
       if (!(parser && parser instanceof Parser)) {
         throw new Error(
           `coroutine passed values must be parsers, got ${parser}`
         )
       }
 
-      const newState = parser.p(currentState)
-      if (newState.isError) {
-        throw newState
-      } else {
-        currentState = newState
+      const nextState = parser.p(currentState)
+      if (nextState.isError) {
+        throw nextState
       }
 
-      currentValue = currentState.result
-      return currentValue
+      currentState = nextState as ParserState<unknown, E>
+      currentValue = (currentState as ParserState<unknown, E>).result
+
+      return currentValue as K
     }
 
     try {
       const result = parserFn(run)
-      return updateResult(currentState, result)
+      return updateResult(currentState, result) as ParserState<T, E>
     } catch (e) {
       if (e instanceof Error) {
         throw e
       } else {
-        return e as ParserState<any, any>
+        return e as ParserState<T, E>
       }
     }
   })
