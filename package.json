@@ -1,8 +1,11 @@
 {
   "name": "parsil",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "A parser combinators library written in Typescript",
-  "repository": "https://github.com/salty-max/parsil",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/salty-max/parsil.git"
+  },
   "author": "Maxime Blanc <max@jellycat.fr>",
   "license": "MIT",
   "type": "module",
@@ -26,6 +29,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "bun test",
     "lint": "bunx eslint .",
+    "lint:fix": "bunx eslint . --fix",
     "format": "bunx prettier . -w"
   },
   "devDependencies": {

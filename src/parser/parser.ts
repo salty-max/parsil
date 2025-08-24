@@ -258,6 +258,34 @@ export class Parser<T, E = string> {
   }
 
   /**
+   * Wraps this parser and returns a parser that yields the original value together with
+   * the start/end byte offsets it consumed. On failure, bubbles the original error.
+   */
+  withSpan(): Parser<{ value: T; start: number; end: number }, E> {
+    return new Parser(
+      (state): ParserState<{ value: T; start: number; end: number }, E> => {
+        const start = state.index
+        const s1 = this.p(state)
+        if (s1.isError) return s1 as any
+        const end = s1.index
+        return updateResult(s1, { value: s1.result, start, end })
+      }
+    )
+  }
+
+  /**
+   * Maps the result of this parser into a caller-provided node shape with an attached span
+   * indicating the start/end byte offsets consumed by this parser.
+   */
+  spanMap<U>(
+    build: (value: T, loc: { start: number; end: number }) => U
+  ): Parser<U, E> {
+    return this.withSpan().map(({ value, start, end }) =>
+      build(value, { start, end })
+    )
+  }
+
+  /**
    * `.between` parses `left`, then `this`, then `right`, **keeping only the result of `this`**.
    * Shorthand for `left.then(this).skip(right)`.
    *
