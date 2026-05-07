@@ -328,6 +328,7 @@ P.keyword('Let', { caseSensitive: false }).run('let x') // result: 'let'
 | `everythingUntil(p)`            | Collect raw bytes until `p` would succeed; returns `number[]`.           |
 | `everyCharUntil(p)`             | Collect chars until `p` would succeed; returns the decoded string.       |
 | `inContext(label, p)`           | Wrap `p` so its failure carries `label` on `error.context`.              |
+| `recoverAt(p, sync)`            | Try `p`; on failure, skip to next `sync` and yield a recovered envelope. |
 
 ```ts
 import * as P from 'parsil'
@@ -533,6 +534,32 @@ const buf = new Uint8Array([0x35, 0x10, 0x20, 0x30, 0x40, 0x50])
 message.run(new DataView(buf.buffer))
 // { type: 3, length: 5, payload: [0x10, 0x20, 0x30, 0x40, 0x50] }
 ```
+
+### Error recovery — collect all errors, not just the first
+
+For a compiler-style "report every error" mode, wrap each statement in `recoverAt` and let the surrounding combinator keep parsing past failures:
+
+```ts
+import * as P from 'parsil'
+
+const stmt = P.expect(P.choice([letDecl, fnDecl, exprStmt]), 'a statement')
+const program = P.sepBy(P.tok(P.char(';')))(P.recoverAt(stmt, P.char(';')))
+
+const result = program.run('let x = 1; INVALID; let y = 2; RAW')
+
+if (!result.isError) {
+  for (const item of result.result) {
+    if (item.ok) {
+      // typed `value` from the inner parser
+    } else {
+      console.error(P.formatParseError(item.error))
+      // ParseError ... at the failure index
+    }
+  }
+}
+```
+
+Each `recoverAt` always succeeds at the envelope level — the outer parser keeps going. Failures are reported as `{ ok: false, error, index }` so you can collect them all and surface a complete diagnostic batch.
 
 ---
 
