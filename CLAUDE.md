@@ -88,14 +88,59 @@ Every grammar that targets diagnostics needs spans. Don't re-implement position 
 
 ## Error Handling
 
+### Structured `ParseError` is the default
+
+Primitive parsers emit a `ParseError` object, not a string:
+
+```ts
+type ParseError = {
+  parser: string // 'char', 'str', 'regex', ...
+  index: number
+  message: string
+  expected?: string
+  actual?: string
+  context?: string[] // outer-first, populated by `inContext`
+}
+```
+
+`Parser<T, E>` defaults `E = ParseError`. Consumers using a custom error type override it via `errorMap`.
+
+When emitting a failure inside a primitive, build the error with the `parseError(parser, index, message, extras?)` factory and pass it to `updateError`:
+
+```ts
+return updateError(
+  state,
+  parseError('char', index, `Expected '${c}', but got '${char}'`, {
+    expected: c,
+    actual: char,
+  })
+)
+```
+
+The string format `ParseError [ctx] @ index N -> <parser>: <message>` lives in `formatParseError(error)` for display. Don't hand-build that string in primitives.
+
 ### Two layers
 
-1. **Library errors**: messages produced by primitive parsers (`char`, `regex`, etc.) follow the format `"ParseError @ index N -> <parser>: <description>"`. Don't change the format casually — downstream tooling regex-matches it.
-2. **Consumer errors**: grammars built on top of parsil should call `.errorMap()` on every parser at a meaningful boundary (token, statement, expression) to attach a stable error code + human message. Never expose the raw `"ParseError @ index N -> str: ..."` to end users; map it.
+1. **Library errors**: every primitive emits `ParseError` via `parseError(...)`. The `parser` field is the machine-readable identity; the `message` is the user-readable description. Don't include `ParseError @ index N -> X:` prefix in the message — that's the formatter's job.
+2. **Consumer errors**: grammars built on top of parsil call `.errorMap()` at meaningful boundaries (token, statement, expression) to attach their own structured shape. Inside a chain, errors propagate unchanged — only map at the boundary where end users will see them.
 
 ### Never throw
 
 Parsers signal failure via the result envelope (`isError: true`, `error`, `index`), not exceptions. The single exception is **construction-time validation** that's a programming error (e.g. `char('ab')` throws `TypeError` because the call signature is wrong — that's not a parse failure, it's a contract violation). Document throws with `@throws` in JSDoc.
+
+The one **internal** use of `throw`/`catch` is in `coroutine`, where it serves as a control-flow primitive (sub-parser failure throws back to the wrapper, which packages it as a parse failure). The "never throw" rule applies to the **public** parser surface: `parser.run(...)` always returns a `ResultType<T, E>`. Internal mechanics scoped to a single combinator are OK if documented.
+
+### Always backtracks
+
+parsil has no `try`/`cut`/commit. Every alternative in `choice` is a full backtrack. Document this in any combinator that adds new branching semantics; don't introduce committing semantics without a separate design discussion.
+
+### Adding context with `inContext`
+
+Wrap a parser with `inContext(label, p)` to push `label` onto `error.context` if it fails. Outer-first order: `inContext('outer', inContext('inner', p))` produces `error.context === ['outer', 'inner']`. The wrap-style complement of `label(name, p)` (which **replaces** the error). Prefer `inContext` to preserve diagnostics; reserve `label` for cases where the inner error is noise.
+
+### English-only error messages
+
+Primitive `ParseError.message` strings are English-only. Localized messages are the consumer's responsibility — `errorMap` at the boundary is the right place. Don't add localization at the primitive level: surface explosion + the right granularity is application-specific.
 
 ### Test the failure path
 
