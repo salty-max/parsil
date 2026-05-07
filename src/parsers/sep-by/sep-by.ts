@@ -9,8 +9,8 @@ import { Parser, ParserState, updateResult } from '@parsil/parser'
  * @template V Type of the value
  * @template E Type of the potential error produced by the parsers
  *
- * @param {Parser<S, E>} sepParser The parser for the separator
- * @returns {(valueParser: Parser<V, E>) => Parser<V[], E>} Function taking a value parser and returning a new parser
+ * @param sepParser The parser for the separator
+ * @returns Function taking a value parser and returning a new parser
  *
  * @example
  * const commaSeparatedNumbers = sepBy(char(','))(manyOne(digits));

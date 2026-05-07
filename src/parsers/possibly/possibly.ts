@@ -12,7 +12,7 @@ import { Parser, updateResult } from '@parsil/parser'
  * @template T The type of the result produced by the parser.
  * @template E The type of the error produced by the parser.
  * @param parser The parser to apply.
- * @returns {Parser<T | null, E>} A parser that returns the result of the applied parser, or `null` if it fails.
+ * @returns A parser that returns the result of the applied parser, or `null` if it fails.
  */
 export const possibly = <T, E>(parser: Parser<T, E>): Parser<T | null, E> => {
   return new Parser((state) => {

@@ -10,7 +10,7 @@ import { sequenceOf } from '@parsil/parsers/sequence-of'
  * parser.run(bitset)  // returns the parsed signed integer if successful, otherwise fails
  *
  * @param n The number of bits to parse as an signed integer.
- * @returns {Parser<number>} A parser that reads the next `n` bits as an signed integer.
+ * @returns A parser that reads the next `n` bits as an signed integer.
  */
 export const int = (n: number): Parser<number> => {
   if (n < 1) {

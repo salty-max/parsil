@@ -14,7 +14,7 @@ import { Parser, updateResult } from '@parsil/parser'
  * @template T The type of result that the parser will produce.
  *
  * @param parser The parser to apply zero or more times.
- * @returns {Parser<T[]>} A parser that applies `parser` zero or more times.
+ * @returns A parser that applies `parser` zero or more times.
  */
 export const many = function many<T>(parser: Parser<T>): Parser<T[]> {
   return new Parser((state) => {

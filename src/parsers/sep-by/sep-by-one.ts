@@ -13,8 +13,9 @@ import { sepBy } from '@parsil/parsers/sep-by/sep-by'
  * parser.run("123")  // returns { isError: true, error: "ParseError @ index 0 -> sepByOne: Expected to match at least one separated value", index: 0 }
  *
  * @param sepParser The parser that recognizes the separator.
- * @param valueParser The parser that recognizes the values to be separated.
- * @returns {Parser<Array<V>>} A parser that applies `sepParser` and `valueParser` in sequence until `valueParser` fails and returns an array of matched values.
+ * @returns A function that takes a `valueParser` and returns a parser
+ *   that applies `sepParser` and the value parser in sequence until the
+ *   value parser fails, returning an array of matched values.
  */
 export const sepByOne =
   <S, V, E>(sepParser: Parser<S, E>) =>

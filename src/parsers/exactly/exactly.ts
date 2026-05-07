@@ -13,8 +13,8 @@ const errorExpectRegex = /ParseError @ index (\d+) ->.+Expected/
  *
  * @template T The type of result that the parser will produce.
  * @param n The number of times the parser should be applied.
- * @param parser The parser to apply `n` times.
- * @returns {Parser<T[]>} A parser that applies the given parser `n` times and collects the results in an array.
+ * @returns A function that takes a parser and returns a parser applying
+ *   it `n` times and collecting the results in an array.
  */
 export function exactly<T, N extends number>(n: N): (p: Parser<T>) => Parser<T[]> {
   if (typeof n !== "number" || n <= 0) {

@@ -11,7 +11,7 @@ import { getNextCharWidth, getUtf8Char } from '@parsil/util'
  *       result: 'T',
  *       index: 1,
  *    }
-
+ 
  * const manyExceptDot = many(anyCharExcept(char('.')))
  * manyExceptDot.run('This is a sentence.')
  * -> {

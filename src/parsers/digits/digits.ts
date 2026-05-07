@@ -1,7 +1,7 @@
 import { Parser } from '@parsil/parser/parser'
 import { regex } from '@parsil/parsers/regex'
 
-const digitsRegex = /^[0-9]+/
+const digitsRegex = /^\d+/
 
 /**
  * `digits` is a parser that matches one or more digit characters at the start of its input,

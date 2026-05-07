@@ -112,7 +112,7 @@ export class Parser<T, E = string> {
 
   /**
    * Constructs a parser instance using a parser state transformer function.
-   * @param parserStateTransformerFn The state transformer function for the parser.
+   * @param p The state transformer function for the parser.
    */
   constructor(p: StateTransformerFn<T, E>) {
     this.p = p
@@ -323,7 +323,7 @@ export class Parser<T, E = string> {
 
 /**
  * Updates the state of the parser with a new index and result.
- * @param oldState The previous state of the parser.
+ * @param state The previous state of the parser.
  * @param index The new index in the input.
  * @param result The new parsing result.
  * @returns A new parser state with updated index and result.
@@ -355,7 +355,7 @@ export const updateResult = <T, E, T2>(
 /**
  * Updates the state of the parser with an error.
  * @param state The previous state of the parser.
- * @param errorMsg The error message.
+ * @param error The new error value.
  * @returns A new parser state with updated error information.
  */
 export const updateError = <T, E, E2>(

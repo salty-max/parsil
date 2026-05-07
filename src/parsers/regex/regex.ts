@@ -19,7 +19,7 @@ import { encoder, getString } from '@parsil/util'
  * @param re The Regular Expression to match against the input.
  * @throws {TypeError} If `re` is not a Regular Expression.
  * @throws {Error} If `re` doesn't start with the '^' assertion.
- * @return {Parser<string>} A parser that tries to match the input against `re`.
+ * @returns A parser that tries to match the input against `re`.
  */
 export const regex = (re: RegExp): Parser<string> => {
   const typeofre = Object.prototype.toString.call(re)

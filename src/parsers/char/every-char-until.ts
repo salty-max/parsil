@@ -11,9 +11,9 @@ import { decoder } from '@parsil/util'
  * parser.run("123end456");  // returns "123"
  * parser.run("Hello World");  // returns "Hello World", as "end" is not found
  *
- * @param {Parser<T>} parser - A parser that defines the condition for the end of parsing.
+ * @param parser - A parser that defines the condition for the end of parsing.
  *
- * @returns {Parser<string>} A parser that consumes the input until the parser parameter returns a successful state.
+ * @returns A parser that consumes the input until the parser parameter returns a successful state.
  */
 export const everyCharUntil = <T>(parser: Parser<T>) =>
   everythingUntil(parser).map((results) =>

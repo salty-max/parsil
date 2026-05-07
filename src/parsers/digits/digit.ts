@@ -1,7 +1,7 @@
 import { Parser, updateError, updateState } from '@parsil/parser'
 import { getNextCharWidth, getUtf8Char } from '@parsil/util'
 
-const digitRegex = /^[0-9]/
+const digitRegex = /^\d/
 
 /**
  * `digit` reads a single digit from the input.

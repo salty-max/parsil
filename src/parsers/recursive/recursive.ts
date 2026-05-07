@@ -16,7 +16,7 @@ import { Parser } from '@parsil/parser'
  * @template E The type of error that the parser can return.
  *
  * @param parserThunk A function that returns a parser. This is to avoid immediate execution of the parser.
- * @returns {Parser<T, E>} A parser that can parse recursive structures.
+ * @returns A parser that can parse recursive structures.
  */
 export const recursive = <T, E = string>(
   parserThunk: () => Parser<T, E>

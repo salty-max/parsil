@@ -14,7 +14,7 @@ import { many } from '@parsil/parsers/many/many'
  * @template T The type of result that the parser will produce.
  *
  * @param parser The parser to apply one or more times.
- * @returns {Parser<T[]>} A parser that applies `parser` one or more times.
+ * @returns A parser that applies `parser` one or more times.
  */
 export const manyOne = function manyOne<T>(parser: Parser<T>): Parser<T[]> {
   return new Parser((state) => {
