@@ -42,4 +42,17 @@ describe('everythingUntil', () => {
       index: 3,
     })
   })
+
+  it('preserves zero bytes in the collected output', () => {
+    // Regression: a `if (val) { ... }` guard used to skip bytes whose
+    // value was 0x00, silently dropping zero bytes from binary inputs.
+    const parser = everythingUntil(str('end'))
+    const input = new Uint8Array([0x01, 0x00, 0x02, 0x00, 0x03, 101, 110, 100])
+    // Bytes before the 'end' marker: [0x01, 0x00, 0x02, 0x00, 0x03]
+    const result = parser.run(input)
+
+    assertIsOk(result)
+    expect(result.result).toStrictEqual([0x01, 0x00, 0x02, 0x00, 0x03])
+    expect(result.index).toBe(5)
+  })
 })
