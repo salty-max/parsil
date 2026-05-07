@@ -248,6 +248,42 @@ satisfy((c) => c >= '0' && c <= '9', 'digit').run('7x') // result: '7'
 | `startOfInput` | `Parser<null, string>`  | Asserts the cursor is at byte 0.                   |
 | `endOfInput`   | `Parser<null, string>`  | Asserts the cursor is past the last byte.          |
 
+### Language helpers
+
+Common literals and error-shaping helpers for hand-rolled DSLs.
+
+| Parser               | Type                                              | Description                                                                                     |
+| -------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `identifier`         | `Parser<string>`                                  | `[A-Za-z_][A-Za-z0-9_]*` — variable / function / keyword names.                                 |
+| `stringLit(q?)`      | `(quote?: '"' \| "'") => Parser<string>`          | Quoted string with `\"` `\\` `\n` `\t` `\r` escapes; default quote is `"`.                      |
+| `intLit`             | `Parser<number>`                                  | Optional sign + digits. Yields a JS `number`.                                                   |
+| `floatLit`           | `Parser<number>`                                  | Optional sign + digits + optional `.digits` + optional `e[+-]?digits`.                          |
+| `signed(p)`          | `<T extends number>(p: Parser<T>) => Parser<T>`   | Wrap a number parser to optionally accept a leading `+` / `-` sign.                             |
+| `label(name, p)`     | `<T>(name: string, p: Parser<T>) => Parser<T>`    | **Replace** failure with `Expected <name>`. Drops inner detail.                                 |
+| `expect(p, msg)`     | `<T>(p: Parser<T>, msg: string) => Parser<T>`     | Replace `error.message` with `msg` while keeping `parser` identity.                             |
+| `tag(value)(p)`      | `<U>(value: U) => <T>(p: Parser<T>) => Parser<U>` | Replace the result with a constant. Useful for keyword-driven enums.                            |
+| `apply(p1, ..., fn)` | `(p1, p2, ..., fn) => Parser<R>` (2 to 5 parsers) | Run parsers in sequence and combine via `fn(a, b, ...)`. Shorthand for `sequenceOf().map(...)`. |
+
+```ts
+import * as P from 'parsil'
+
+P.identifier.run('foo_bar 42') // 'foo_bar'
+P.stringLit().run('"hello\\n"') // 'hello\n'
+P.intLit.run('-42') // -42
+P.floatLit.run('1.5e3') // 1500
+
+const port = P.expect(P.intLit, 'a port number (0-65535)')
+const trueLit = P.tag(true)(P.keyword('true'))
+
+const assign = P.apply(
+  P.identifier,
+  P.tok(P.char('=')),
+  P.intLit,
+  (name, _, value) => ({ name, value })
+)
+assign.run('age = 42') // { name: 'age', value: 42 }
+```
+
 ### Lexeme helpers
 
 For free-form languages where tokens are separated by whitespace, and where keywords must not match partial prefixes of identifiers.
