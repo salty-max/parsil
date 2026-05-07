@@ -15,7 +15,7 @@ import { Parser, ParserState, updateError } from '@parsil/parser'
  *
  * @param parsers The list of parsers to try in order.
  * @throws {Error} If `parsers` is an empty list.
- * @returns {Parser<any>} A parser that applies the first successful parser in `parsers`.
+ * @returns A parser that applies the first successful parser in `parsers`.
  */
 export function choice<T, E = string>(parsers: Parser<T, E>[]): Parser<T, E>
 export function choice<T extends readonly Parser<any, any>[]>(parsers: T): Parser<T[number] extends Parser<infer R, any> ? R : never, T[number] extends Parser<any, infer Err> ? Err : never>

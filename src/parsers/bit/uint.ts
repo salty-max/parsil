@@ -11,7 +11,7 @@ import { sequenceOf } from '@parsil/parsers/sequence-of'
  * const result = parser.run(new DataView(input.buffer))
  *
  * @param n The number of bits to parse as an unsigned integer.
- * @returns {Parser<number>} A parser that reads the next `n` bits as an unsigned integer.
+ * @returns A parser that reads the next `n` bits as an unsigned integer.
  */
 export const uint = (n: number): Parser<number> => {
   if (n < 1) {

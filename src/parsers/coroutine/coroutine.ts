@@ -20,8 +20,8 @@ type ParserFn<T, E = string> = (_yield: <K>(parser: Parser<K, E>) => K) => T
  * coroutineParser.run(input);
  *
  * @template T The type of the parser result.
- * @param {ParserFn<T>} parserFn The parser function that defines the coroutine logic.
- * @returns {Parser<T>} A coroutine parser.
+ * @param parserFn The parser function that defines the coroutine logic.
+ * @returns A coroutine parser.
  */
 export const coroutine = <T, E = string>(
   parserFn: ParserFn<T, E>

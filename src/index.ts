@@ -11,7 +11,6 @@ import {
   updateResult,
   updateState,
 } from '@parsil/parser'
-export * from '@parsil/parsers'
 import * as Parsers from '@parsil/parsers'
 import {
   decoder,
@@ -21,6 +20,8 @@ import {
   getString,
   getUtf8Char,
 } from '@parsil/util'
+
+export * from '@parsil/parsers'
 
 export type { Err, InputType, Ok, ParserState, ResultType }
 

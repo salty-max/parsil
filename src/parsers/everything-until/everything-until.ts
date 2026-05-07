@@ -16,9 +16,9 @@ import {
  *
  * @template T - The generic parameter representing the type of value the provided parser produces.
  *
- * @param {Parser<T>} parser - The parser that when fails, signals `everythingUntil` to stop collecting values.
+ * @param parser - The parser that when fails, signals `everythingUntil` to stop collecting values.
  *
- * @returns {Parser<number[], string>} A new parser that will collect and return all parsed values
+ * @returns A new parser that will collect and return all parsed values
  * until the provided parser fails.
  */
 export const everythingUntil = <T>(parser: Parser<T>): Parser<number[]> =>

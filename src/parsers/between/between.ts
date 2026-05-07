@@ -18,8 +18,8 @@ import { sequenceOf } from '@parsil/parsers/sequence-of'
  *
  * @param leftParser The parser that matches the left boundary.
  * @param rightParser The parser that matches the right boundary.
- * @param contentParser The parser that matches the content between the left and right boundaries.
- * @returns {Parser<T>} A parser that matches the content between the left and right boundaries.
+ * @returns A function that takes a `contentParser` and returns a parser
+ *   matching the content between the left and right boundaries.
  */
 export const between =
   <L, T, R>(leftParser: Parser<L>, rightParser: Parser<R>) =>

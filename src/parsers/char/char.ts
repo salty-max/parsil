@@ -15,7 +15,7 @@ import { getCharacterLength, getNextCharWidth, getUtf8Char } from '@parsil/util'
  *
  * @param c The character to match against the input.
  * @throws {TypeError} If `c` is not a string of length 1.
- * @returns {Parser<string>} A parser that tries to match the input against `c`.
+ * @returns A parser that tries to match the input against `c`.
  */
 export const char = (c: string): Parser<string> => {
   if (!c || getCharacterLength(c) !== 1) {
