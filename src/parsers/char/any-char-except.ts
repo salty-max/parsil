@@ -1,4 +1,4 @@
-import { Parser, updateError, updateState } from '@parsil/parser'
+import { parseError, Parser, updateError, updateState } from '@parsil/parser'
 import { getNextCharWidth, getUtf8Char } from '@parsil/util'
 
 /**
@@ -39,12 +39,17 @@ export const anyCharExcept = <T>(parser: Parser<T>): Parser<string> =>
       }
       return updateError(
         state,
-        `ParseError @ index ${index} -> anyCharExcept: Unexpected end of input`
+        parseError('anyCharExcept', index, 'Unexpected end of input')
       )
     }
 
     return updateError(
       state,
-      `ParseError @ index ${index} -> anyCharExcept: Matched '${out.result}' from the exception parser`
+      parseError(
+        'anyCharExcept',
+        index,
+        `Matched '${out.result}' from the exception parser`,
+        { actual: String(out.result) }
+      )
     )
   })

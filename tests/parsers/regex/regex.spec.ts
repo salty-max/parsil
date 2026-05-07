@@ -24,8 +24,11 @@ describe('regex', () => {
     expect(result).toEqual({
       index: 0,
       isError: true,
-      error:
-        "ParseError @ index 0 -> regex: Tried to match /^\\d+$/, got 'abc...'",
+      error: expect.objectContaining({
+        parser: 'regex',
+        index: 0,
+        message: "Tried to match /^\\d+$/, got 'abc...'",
+      }),
     })
   })
 
@@ -38,8 +41,11 @@ describe('regex', () => {
     expect(result).toEqual({
       index: 0,
       isError: true,
-      error:
-        'ParseError @ index 0 -> regex: Tried to match /^\\d+$/, but got unexpected end of input',
+      error: expect.objectContaining({
+        parser: 'regex',
+        index: 0,
+        message: 'Tried to match /^\\d+$/, but got unexpected end of input',
+      }),
     })
   })
 

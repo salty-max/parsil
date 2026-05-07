@@ -23,7 +23,10 @@ describe('anyCharExcept', () => {
 
     expect(result).toStrictEqual({
       isError: true,
-      error: expect.stringContaining("Matched '.'"),
+      error: expect.objectContaining({
+        parser: 'anyCharExcept',
+        message: expect.stringContaining("Matched '.'"),
+      }),
       index: 0,
     })
   })
@@ -36,7 +39,10 @@ describe('anyCharExcept', () => {
 
     expect(result).toStrictEqual({
       isError: true,
-      error: expect.stringContaining('Unexpected end of input'),
+      error: expect.objectContaining({
+        parser: 'anyCharExcept',
+        message: expect.stringContaining('Unexpected end of input'),
+      }),
       index: 0,
     })
   })

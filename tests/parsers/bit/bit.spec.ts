@@ -1,4 +1,4 @@
-import { bit, exactly } from '@parsil'
+import { bit, exactly, formatParseError } from '@parsil'
 import { describe, expect, it } from 'bun:test'
 
 import { assertIsError, assertIsOk } from '../../util/test-util'
@@ -26,7 +26,7 @@ describe('bit', () => {
     const result = readNineBits.run(new DataView(input.buffer))
 
     assertIsError(result)
-    expect(result.error).toContain('bit: Unexpected end of input')
+    expect(formatParseError(result.error)).toContain('Unexpected end of input')
   })
 
   it('reads all 8 bits of a byte without overrunning', () => {

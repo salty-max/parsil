@@ -1,4 +1,11 @@
-import { Parser, ParserState, updateError, updateState } from '@parsil/parser'
+import {
+  ParseError,
+  parseError,
+  Parser,
+  ParserState,
+  updateError,
+  updateState,
+} from '@parsil/parser'
 import { encoder, getString } from '@parsil/util'
 
 const isWordChar = (charCode: number): boolean =>
@@ -45,7 +52,7 @@ export const keyword = (
   const target = caseSensitive ? word : word.toLowerCase()
   const targetByteLen = encoder.encode(target).byteLength
 
-  return new Parser<string>((state): ParserState<string, string> => {
+  return new Parser<string>((state): ParserState<string, ParseError> => {
     if (state.isError) return state
 
     const { dataView, index } = state
@@ -54,7 +61,12 @@ export const keyword = (
     if (dataView.byteLength - index < targetByteLen) {
       return updateError(
         state,
-        `ParseError @ index ${index} -> keyword: Expected '${word}', but got unexpected end of input`
+        parseError(
+          'keyword',
+          index,
+          `Expected '${word}', but got unexpected end of input`,
+          { expected: word }
+        )
       )
     }
 
@@ -64,7 +76,12 @@ export const keyword = (
     if (head !== target) {
       return updateError(
         state,
-        `ParseError @ index ${index} -> keyword: Expected '${word}', but got '${head}...'`
+        parseError(
+          'keyword',
+          index,
+          `Expected '${word}', but got '${head}...'`,
+          { expected: word, actual: head }
+        )
       )
     }
 
@@ -76,7 +93,12 @@ export const keyword = (
       if (isWordChar(nextByte)) {
         return updateError(
           state,
-          `ParseError @ index ${index} -> keyword: Expected '${word}' followed by a word boundary, but got more word characters`
+          parseError(
+            'keyword',
+            index,
+            `Expected '${word}' followed by a word boundary, but got more word characters`,
+            { expected: `'${word}' (with word boundary)` }
+          )
         )
       }
     }

@@ -1,18 +1,16 @@
-import { Parser, updateError, updateState } from '@parsil/parser'
+import { parseError, Parser, updateError, updateState } from '@parsil/parser'
 import { getNextCharWidth, getUtf8Char } from '@parsil/util'
 
 const letterRegex = /^[A-Za-z]/
 
 /**
- * `letter` reads a single letter from the input.
- * It matches any uppercase or lowercase letter from the English alphabet.
+ * `letter` matches a single ASCII alphabetic character.
  *
  * @example
- * const parser = letter;
- * parser.run('a'); // returns { isError: false, result: 'a', index: 1 }
- * parser.run('1'); // returns { isError: true, error: "ParseError @ index 0 -> letter: Expected letter, got '1'", index: 0 }
+ * letter.run('a') // { isError: false, result: 'a', index: 1 }
+ * letter.run('1') // ParseError @ index 0 -> letter: Expected letter, but got '1'
  *
- * @returns {Parser<string>} A parser that reads a single letter from the input.
+ * @returns A parser that matches a single ASCII letter.
  */
 export const letter: Parser<string> = new Parser((state) => {
   if (state.isError) return state
@@ -27,13 +25,18 @@ export const letter: Parser<string> = new Parser((state) => {
         ? updateState(state, index + charWidth, char)
         : updateError(
             state,
-            `ParseError @ index ${index} -> letter: Expected letter, but got '${char}'`
+            parseError('letter', index, `Expected letter, but got '${char}'`, {
+              expected: '[A-Za-z]',
+              actual: char,
+            })
           )
     }
   }
 
   return updateError(
     state,
-    `ParseError @ index ${index} -> letter: Expected letter, but got end of input.`
+    parseError('letter', index, 'Expected letter, but got end of input.', {
+      expected: '[A-Za-z]',
+    })
   )
 })

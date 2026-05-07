@@ -19,7 +19,11 @@ describe('peek', () => {
 
     expect(result).toEqual({
       isError: true,
-      error: 'ParseError @ index 0 -> peek: Unexpected end of input',
+      error: expect.objectContaining({
+        parser: 'peek',
+        index: 0,
+        message: 'Unexpected end of input',
+      }),
       index: 0,
     })
   })

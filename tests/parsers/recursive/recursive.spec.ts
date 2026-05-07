@@ -1,4 +1,12 @@
-import { between, char, choice, digits, recursive, sepBy } from '@parsil'
+import {
+  between,
+  char,
+  choice,
+  digits,
+  formatParseError,
+  recursive,
+  sepBy,
+} from '@parsil'
 import { describe, expect, it } from 'bun:test'
 
 import { assertIsError, assertIsOk } from '../../util/test-util'
@@ -30,7 +38,7 @@ describe('recursive', () => {
   it('should return an error for malformed arrays', () => {
     const result = arrayParser.run('[1,2,3,')
     assertIsError(result)
-    expect(result.error).toBe(
+    expect(formatParseError(result.error)).toBe(
       "ParseError @ index 7 -> char: Expected ']', but got unexpected end of input"
     )
   })
@@ -38,7 +46,7 @@ describe('recursive', () => {
   it('should return an error for arrays missing closing bracket', () => {
     const result = arrayParser.run('[1,2,3')
     assertIsError(result)
-    expect(result.error).toBe(
+    expect(formatParseError(result.error)).toBe(
       "ParseError @ index 6 -> char: Expected ']', but got unexpected end of input"
     )
   })

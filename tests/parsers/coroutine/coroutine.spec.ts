@@ -1,4 +1,12 @@
-import { char, coroutine, digits, fail, letters, str } from '@parsil'
+import {
+  char,
+  coroutine,
+  digits,
+  fail,
+  formatParseError,
+  letters,
+  str,
+} from '@parsil'
 import { describe, expect, it } from 'bun:test'
 
 import { assertIsError } from '../../util/test-util'
@@ -63,8 +71,10 @@ describe('coroutine', () => {
 
     const result = parser.run('test')
     assertIsError(result)
-    expect(result.error).toContain('coroutine:')
-    expect(result.error).toContain('must be called with a Parser')
+    expect(formatParseError(result.error)).toContain('coroutine:')
+    expect(formatParseError(result.error)).toContain(
+      'must be called with a Parser'
+    )
   })
 
   it('surfaces a non-parser-state thrown value in the body as a parse failure', () => {
@@ -77,7 +87,7 @@ describe('coroutine', () => {
 
     const result = parser.run('test')
     assertIsError(result)
-    expect(result.error).toContain('coroutine:')
-    expect(result.error).toContain('boom')
+    expect(formatParseError(result.error)).toContain('coroutine:')
+    expect(formatParseError(result.error)).toContain('boom')
   })
 })

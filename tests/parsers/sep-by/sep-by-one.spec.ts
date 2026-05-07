@@ -1,4 +1,4 @@
-import { char, digits, letters, sepByOne } from '@parsil'
+import { char, digits, formatParseError, letters, sepByOne } from '@parsil'
 import { describe, expect, it } from 'bun:test'
 
 import { assertIsError, assertIsOk } from '../../util/test-util'
@@ -25,7 +25,7 @@ describe('sepByOne', () => {
     const result = commaSeparatedWords.run('')
 
     assertIsError(result)
-    expect(result.error).toBe(
+    expect(formatParseError(result.error)).toBe(
       'ParseError @ index 0 -> sepByOne: Expected to match at least one separated value'
     )
   })
@@ -35,7 +35,7 @@ describe('sepByOne', () => {
     const result = commaSeparatedWords.run(',apple,banana,cherry')
 
     assertIsError(result)
-    expect(result.error).toBe(
+    expect(formatParseError(result.error)).toBe(
       'ParseError @ index 0 -> sepByOne: Expected to match at least one separated value'
     )
   })

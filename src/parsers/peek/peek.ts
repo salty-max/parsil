@@ -1,15 +1,20 @@
-import { Parser, updateError, updateState } from '@parsil/parser/parser'
+import {
+  parseError,
+  Parser,
+  updateError,
+  updateState,
+} from '@parsil/parser/parser'
 
 /**
- * `peek` peeks (u don't say) at the next byte in the input, without consuming it.
- * It returns the value of the next byte as a number.
+ * `peek` peeks at the next byte in the input without consuming it. It
+ * returns the value of the next byte as a number.
  *
  * @example
- * const parser = P.peek;
- * const data = new Uint8Array([1, 2, 3]);
- * parser.run(new DataView(data.buffer)); // returns { isError: false, result: 1, index: 0 }
+ * const data = new Uint8Array([1, 2, 3])
+ * peek.run(new DataView(data.buffer))
+ * // { isError: false, result: 1, index: 0 }
  *
- * @returns {Parser<number>} A parser that peeks at the next byte in the input.
+ * @returns A parser that peeks at the next byte in the input.
  */
 export const peek: Parser<number> = new Parser((state) => {
   if (state.isError) return state
@@ -22,6 +27,6 @@ export const peek: Parser<number> = new Parser((state) => {
 
   return updateError(
     state,
-    `ParseError @ index ${index} -> peek: Unexpected end of input`
+    parseError('peek', index, 'Unexpected end of input')
   )
 })

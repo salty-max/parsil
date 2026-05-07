@@ -1,6 +1,8 @@
 import {
+  formatParseError,
   InputTypes,
   isError,
+  parseError,
   Parser,
   str,
   updateError,
@@ -21,12 +23,15 @@ describe('Parser', () => {
   })
 
   it('should return Err when parsing fails', () => {
-    const parser = new Parser((state) => updateError(state, 'Error occurred'))
+    const parser = new Parser((state) =>
+      updateError(state, parseError('test', state.index, 'Error occurred'))
+    )
     const result = parser.run('Test input')
 
     assertIsError(result)
     expect(isError(result)).toBe(true)
-    expect(result.error).toBe('Error occurred')
+    expect(result.error.parser).toBe('test')
+    expect(result.error.message).toBe('Error occurred')
   })
 
   describe('Parser.fork', () => {
@@ -49,7 +54,11 @@ describe('Parser', () => {
       parser.fork('bar', errorFn, successFn)
 
       expect(errorFn).toHaveBeenCalledWith(
-        `ParseError @ index 0 -> str: Tried to match 'foo', but got 'bar...'`,
+        expect.objectContaining({
+          parser: 'str',
+          index: 0,
+          message: "Tried to match 'foo', but got 'bar...'",
+        }),
         expect.anything()
       )
       expect(successFn).not.toHaveBeenCalled()
@@ -73,7 +82,7 @@ describe('Parser', () => {
 
       assertIsError(res)
       // Helpful error starts at the position where ":" was expected
-      expect(res.error).toContain(`Tried to match ':'`)
+      expect(formatParseError(res.error)).toContain(`Tried to match ':'`)
     })
   })
 
@@ -93,7 +102,7 @@ describe('Parser', () => {
       const res = p.run('let y')
 
       assertIsError(res)
-      expect(res.error).toContain(`Tried to match 'x'`)
+      expect(formatParseError(res.error)).toContain(`Tried to match 'x'`)
     })
   })
 
@@ -113,7 +122,7 @@ describe('Parser', () => {
       const res = p.run('(foo')
 
       assertIsError(res)
-      expect(res.error).toContain(`Tried to match ')'`)
+      expect(formatParseError(res.error)).toContain(`Tried to match ')'`)
     })
   })
 
@@ -146,7 +155,7 @@ describe('Parser', () => {
       const res = la.run('bar')
 
       assertIsError(res)
-      expect(res.error).toContain(`Tried to match 'foo'`)
+      expect(formatParseError(res.error)).toContain(`Tried to match 'foo'`)
       // index should still be at 0 on failure reporting
       expect(res.index).toBe(0)
     })
@@ -162,15 +171,17 @@ describe('Parser', () => {
   })
 
   it('should update error using errorMap', () => {
-    const parser = new Parser((state) => updateError(state, 'Error occurred'))
-    const errorMappedParser = parser.errorMap(
-      (error) => `Modified ${error.error}`
+    const parser = new Parser((state) =>
+      updateError(state, parseError('test', state.index, 'Error occurred'))
+    )
+    const errorMappedParser = parser.errorMap(({ error }) =>
+      parseError(error.parser, error.index, `Modified ${error.message}`)
     )
     const result = errorMappedParser.run('Test input')
 
     assertIsError(result)
     expect(isError(result)).toBe(true)
-    expect(result.error).toBe('Modified Error occurred')
+    expect(result.error.message).toBe('Modified Error occurred')
   })
 })
 

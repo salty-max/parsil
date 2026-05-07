@@ -19,7 +19,11 @@ describe('whitespace', () => {
 
     expect(result).toStrictEqual({
       isError: true,
-      error: `ParseError @ index 0 -> regex: Tried to match /^\\s+/, got 'abc...'`,
+      error: expect.objectContaining({
+        parser: 'regex',
+        index: 0,
+        message: `Tried to match /^\\s+/, got 'abc...'`,
+      }),
       index: 0,
     })
   })
