@@ -1,5 +1,6 @@
+import { char, digits, letters, sepByOne } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { char, digits, letters, sepByOne } from '../../../src'
+
 import { assertIsError, assertIsOk } from '../../util/test-util'
 
 describe('sepByOne', () => {

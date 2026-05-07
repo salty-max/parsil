@@ -1,4 +1,3 @@
-import { assertIsError, assertIsOk } from '../util/test-util'
 import {
   InputTypes,
   isError,
@@ -7,8 +6,10 @@ import {
   updateError,
   updateResult,
   updateState,
-} from '../../src'
+} from '@parsil'
 import { describe, expect, it, mock } from 'bun:test'
+
+import { assertIsError, assertIsOk } from '../util/test-util'
 
 describe('Parser', () => {
   it('should return Ok when parsing is successful', () => {

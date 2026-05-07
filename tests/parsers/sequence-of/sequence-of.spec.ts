@@ -1,5 +1,6 @@
+import { sequenceOf, str } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { sequenceOf, str } from '../../../src'
+
 import { assertIsError, assertIsOk } from '../../util/test-util'
 
 describe('sequenceOf', () => {

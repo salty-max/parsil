@@ -1,5 +1,6 @@
+import { choice, digits, letters } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { choice, digits, letters } from '../../../src'
+
 import { assertIsError, assertIsOk } from '../../util/test-util'
 
 describe('choice', () => {

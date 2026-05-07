@@ -1,5 +1,5 @@
+import { peek } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { peek } from '../../../src'
 
 describe('peek', () => {
   it('should peek at the next byte without consuming it', () => {

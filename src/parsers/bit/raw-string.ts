@@ -1,8 +1,8 @@
 import { Parser } from '@parsil/parser/parser'
+import { uint } from '@parsil/parsers/bit/uint'
 import { fail } from '@parsil/parsers/fail'
 import { sequenceOf } from '@parsil/parsers/sequence-of'
 import { succeed } from '@parsil/parsers/succeed'
-import { uint } from '@parsil/parsers/bit/uint'
 
 /**
  * `rawString` matches a string of characters exactly as provided.

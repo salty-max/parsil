@@ -1,5 +1,5 @@
+import { digit } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { digit } from '../../../src'
 
 describe('digit', () => {
   it('should parse a single digit', () => {

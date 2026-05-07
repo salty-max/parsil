@@ -1,6 +1,7 @@
+import { fail } from '@parsil'
 import { describe, expect, it } from 'bun:test'
+
 import { assertIsError } from '../../util/test-util'
-import { fail } from '../../../src'
 
 describe('fail', () => {
   it('should always return error state with the provided error message', () => {
