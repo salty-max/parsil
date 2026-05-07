@@ -46,10 +46,16 @@ export function choice<T extends Parser<unknown, unknown>[]>(
   return new Parser((state) => {
     if (state.isError) return state
 
-    // Aggregate the `expected` field from each failing branch so the
-    // composite error advertises what choice was looking for, not just
-    // 'Unable to match'.
+    // Track two pieces of information across failing branches:
+    // 1. expected[]   — what each branch was looking for, joined into
+    //    a 'Expected one of: a | b | c' message and exposed as
+    //    `error.expected` on the composite failure.
+    // 2. furthestError — the failing branch that consumed the most
+    //    input. Heuristically that branch matched the user's intent
+    //    further than the others; surfacing it in `error.message` is
+    //    more useful than a generic 'Unable to match'.
     const expectedFromBranches: string[] = []
+    let furthestError: ParseError | undefined
 
     for (const p of parsers) {
       const out = p.p(state)
@@ -60,10 +66,19 @@ export function choice<T extends Parser<unknown, unknown>[]>(
         >
       }
       const e = out.error as ParseError | undefined
-      if (e && typeof e === 'object' && 'expected' in e && e.expected) {
-        expectedFromBranches.push(e.expected)
-      } else if (e && typeof e === 'object' && 'parser' in e && e.parser) {
-        expectedFromBranches.push(e.parser)
+      if (e && typeof e === 'object') {
+        if ('expected' in e && e.expected) {
+          expectedFromBranches.push(e.expected)
+        } else if ('parser' in e && e.parser) {
+          expectedFromBranches.push(e.parser)
+        }
+        if (
+          'index' in e &&
+          typeof e.index === 'number' &&
+          (!furthestError || e.index > furthestError.index)
+        ) {
+          furthestError = e
+        }
       }
     }
 
@@ -71,14 +86,24 @@ export function choice<T extends Parser<unknown, unknown>[]>(
       ? expectedFromBranches.join(' | ')
       : undefined
 
+    // Surface the deepest branch error in the message when available;
+    // otherwise fall back to the generic "Unable to match".
+    const baseMessage = expected
+      ? `Expected one of: ${expected}`
+      : 'Unable to match with any parser'
+    const message = furthestError
+      ? `${baseMessage}; furthest branch failed at index ${furthestError.index}: ${furthestError.message}`
+      : baseMessage
+
     return updateError(
       state,
       parseError(
         'choice',
+        // Anchor the choice failure at the position where it started,
+        // not the furthest branch's index — the user can still read
+        // furthestError.index from the message body if they want it.
         state.index,
-        expected
-          ? `Expected one of: ${expected}`
-          : 'Unable to match with any parser',
+        message,
         expected ? { expected } : {}
       )
     )
