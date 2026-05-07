@@ -16,7 +16,7 @@ import { succeed } from '@parsil/parsers/succeed'
  * parser.run("hello world"); // returns { isError: false, result: [104, 101, 108, 108, 111], index: 5 }
  *
  * @param s The string to match in the input.
- * @returns {Parser<number[], string>} A parser that matches the provided string as a sequence of ASCII codes.
+ * @returns A parser that matches the provided string as a sequence of ASCII codes.
  * @throws {Error} If the input string is empty.
  */
 export const rawString = (s: string): Parser<number[], string> => {
@@ -24,8 +24,7 @@ export const rawString = (s: string): Parser<number[], string> => {
     throw new Error(`rawString: input must be at least 1 character`)
   }
 
-  const bytes = s
-    .split('')
+  const bytes = [...s]
     .map((c) => c.charCodeAt(0))
     .map((n) => {
       return uint(8).chain((res) => {

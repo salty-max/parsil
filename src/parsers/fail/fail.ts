@@ -9,7 +9,7 @@ import { Parser, updateError } from '@parsil/parser/parser'
  * parser.run("anything")  // returns "Always fails"
  *
  * @param error The error message that this parser will always fail with.
- * @returns {Parser<any, E>} A parser that always fails with the error message `error`.
+ * @returns A parser that always fails with the error message `error`.
  */
 export function fail<E>(error: E) {
   return new Parser<any, E>((state) => {

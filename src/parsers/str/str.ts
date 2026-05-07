@@ -20,7 +20,7 @@ import { encoder, getCharacterLength, getString } from '@parsil/util'
  *
  * @param s The string to match against the input.
  * @throws {TypeError} If `s` is not a string or is an empty string.
- * @return {Parser<string>} A parser that tries to match the input against `s`.
+ * @returns A parser that tries to match the input against `s`.
  */
 export const str = (s: string): Parser<string> => {
   if (!s || getCharacterLength(s) < 1) {
