@@ -116,6 +116,7 @@ Parsil exposes a `Parser<T>` type and a set of combinators. Everything below is 
 - **`exactly(n)(p)`** – repeat parser `n` times
 - **`between(left, right)(value)`** – parse `value` between `left` and `right`
 - **`sepBy(sep)(value)`** / **`sepByOne(sep)(value)`** – separated lists
+- **`chainl1(operand, op)`** / **`chainr1(operand, op)`** – left/right-associative operator-precedence parsing (`op` yields the binary fn)
 - **`possibly(p)`** – optional (returns `null` when absent)
 - **`lookAhead(p)`**, **`peek`**, **`startOfInput`**, **`endOfInput`**
 - **`recursive(thunk)`** – define mutually recursive parsers
