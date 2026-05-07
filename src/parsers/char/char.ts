@@ -38,14 +38,14 @@ export const char = (c: string): Parser<string> => {
 
         return updateError(
           state,
-          `ParseError @ index 0 -> char: Expected '${c}', but got '${char}'`
+          `ParseError @ index ${index} -> char: Expected '${c}', but got '${char}'`
         )
       }
     }
 
     return updateError(
       state,
-      `ParseError @ index 0 -> char: Expected '${c}', but got unexpected end of input`
+      `ParseError @ index ${index} -> char: Expected '${c}', but got unexpected end of input`
     )
   })
 }

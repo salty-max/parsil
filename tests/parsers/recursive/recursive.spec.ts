@@ -31,7 +31,7 @@ describe('recursive', () => {
     const result = arrayParser.run('[1,2,3,')
     assertIsError(result)
     expect(result.error).toBe(
-      "ParseError @ index 0 -> char: Expected ']', but got unexpected end of input"
+      "ParseError @ index 7 -> char: Expected ']', but got unexpected end of input"
     )
   })
 
@@ -39,7 +39,7 @@ describe('recursive', () => {
     const result = arrayParser.run('[1,2,3')
     assertIsError(result)
     expect(result.error).toBe(
-      "ParseError @ index 0 -> char: Expected ']', but got unexpected end of input"
+      "ParseError @ index 6 -> char: Expected ']', but got unexpected end of input"
     )
   })
 })
