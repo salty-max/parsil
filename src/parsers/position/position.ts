@@ -6,5 +6,5 @@ import { Parser, ParserState, updateState } from '@parsil/parser/parser'
  */
 export const index: Parser<number, never> = new Parser(
   (state): ParserState<number, never> =>
-    updateState(state as any, state.index, state.index)
+    updateState(state, state.index, state.index) as ParserState<number, never>
 )

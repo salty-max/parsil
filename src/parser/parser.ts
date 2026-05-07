@@ -25,10 +25,22 @@ export type ParserState<T, E> = {
 
 /**
  * StateTransformerFn is a function type used to transform one parser state into another.
- * @template T The type of the result
- * @template E The type of the error, defaults to 'any'
+ *
+ * The input state is typed as `ParserState<any, any>` deliberately:
+ * a parser receives the predecessor's state, whose result/error types
+ * are unrelated to this parser's `T`/`E`. Tightening to `unknown`
+ * forces a cast on every `return state` early-exit (~25 sites), which
+ * makes the noise outweigh the gain. The unsafety is contained — a
+ * parser may only forward `state` when it has not produced its own
+ * result, i.e. when forwarding an error or position untouched.
+ *
+ * Defaulting `E` to `string` matches parsil's de facto error
+ * convention; consumers using a structured error type override it.
+ *
+ * @template T The type of the result.
+ * @template E The type of the error; defaults to `string`.
  */
-export type StateTransformerFn<T, E = any> = (
+export type StateTransformerFn<T, E = string> = (
   state: ParserState<any, any>
 ) => ParserState<T, E>
 
@@ -280,7 +292,9 @@ export class Parser<T, E = string> {
       (state): ParserState<{ value: T; start: number; end: number }, E> => {
         const start = state.index
         const s1 = this.p(state)
-        if (s1.isError) return s1 as any
+        if (s1.isError) {
+          return s1 as ParserState<{ value: T; start: number; end: number }, E>
+        }
         const end = s1.index
         return updateResult(s1, { value: s1.result, start, end })
       }
@@ -341,6 +355,7 @@ export class Parser<T, E = string> {
 
 /**
  * Updates the state of the parser with a new index and result.
+ *
  * @param state The previous state of the parser.
  * @param index The new index in the input.
  * @param result The new parsing result.
@@ -358,6 +373,7 @@ export const updateState = <T, E, T2>(
 
 /**
  * Updates the state of the parser with a new result.
+ *
  * @param state The previous state of the parser.
  * @param result The new parsing result.
  * @returns A new parser state with updated result.
@@ -372,6 +388,7 @@ export const updateResult = <T, E, T2>(
 
 /**
  * Updates the state of the parser with an error.
+ *
  * @param state The previous state of the parser.
  * @param error The new error value.
  * @returns A new parser state with updated error information.
