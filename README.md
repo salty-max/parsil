@@ -4,18 +4,32 @@
 [![npm Version](https://img.shields.io/npm/v/parsil.svg?style=flat-square)](https://www.npmjs.com/package/parsil)
 [![License](https://img.shields.io/npm/l/parsil.svg?style=flat-square)](https://github.com/salty-max/parsil/blob/main/LICENSE)
 
-A lightweight parser‑combinator library for JavaScript/TypeScript. Compose small, pure parsers into powerful language parsers that run in **Node**, **Bun**, and modern **browsers**.
+A lightweight, dependency-free parser-combinator library for JavaScript and TypeScript. Compose tiny parsers into language and protocol parsers that run in **Node**, **Bun**, and modern **browsers**.
+
+```ts
+import * as P from 'parsil'
+
+const greeting = P.sequenceOf([P.str('hello'), P.char(' '), P.letters])
+greeting.run('hello world')
+// { isError: false, result: ['hello', ' ', 'world'], index: 11 }
+```
 
 ---
 
 ## Key features
 
-- **Combinators** for building complex grammars from tiny pieces
-- Great **TypeScript** inference
-- **UTF‑8 aware** character parsers
-- **Source positions**: capture current offset (`index`) and attach **spans** with `parser.withSpan()` / `parser.spanMap()`
-- Works on **string** and **binary** inputs (`TypedArray`/`ArrayBuffer`/`DataView`)
-- Helpful error messages and ergonomics (`run`, `fork`, `map`, `chain`, `errorMap`)
+- **40+ parsers and combinators** for character, string, regex, position, repetition, separation, recursion, and binary input.
+- **Great TypeScript inference**: `sequenceOf([str('x'), digits])` infers `Parser<[string, string]>`.
+- **UTF-8 aware** character parsers; `withSpan` / `spanMap` carry start/end byte offsets through the parse for AST tooling.
+- **String _and_ binary inputs**: `string`, `ArrayBuffer`, `TypedArray`, `DataView` all work; bit- and byte-level primitives ship in the box.
+- **Two-layer error model**: primitive parsers produce `ParseError @ index N -> <name>: ...` strings; consumers map them into structured errors with `errorMap`.
+- **Zero runtime dependencies.** ESM-only, ~12 KB minified.
+
+### What parsil **isn't**
+
+- A grammar generator (PEG.js, nearley) — there is no grammar file format. You write parsers in TypeScript.
+- A lexer/tokenizer toolkit by default — characters are the granularity. (Lexeme/keyword helpers ship as combinators.)
+- An AST utility library — call sites build their own AST shape; parsil supplies positions and combinators, not opinions.
 
 ---
 
@@ -29,38 +43,109 @@ npm i parsil
 bun add parsil
 ```
 
-> **ESM‑only** as of v2.0.0. If you use CommonJS, dynamically import:
+> **ESM-only** since v2.0.0. If you use CommonJS, use a dynamic import:
 >
 > ```js
 > const P = await import('parsil')
 > ```
 
+**Engines**: Node ≥ 20, Bun ≥ 1.1.
+
+---
+
+## Mental model
+
+A parser in parsil is a function from one `ParserState` to the next. State carries a cursor (`index`), the input (`dataView`), and either a successful result or an error.
+
+```ts
+// Conceptual shape — you don't write these by hand.
+type ParserState<T, E> = {
+  dataView: DataView // input
+  index: number // cursor (byte offset)
+  isError: boolean
+  result: T // valid when isError === false
+  error: E // valid when isError === true
+}
+```
+
+When you call `parser.run(input)`, parsil wraps the input in a state, runs the parser, and returns a **result envelope**:
+
+```ts
+type ResultType<T, E> = Ok<T> | Err<E>
+
+type Ok<T> = { isError: false; result: T; index: number }
+type Err<E> = { isError: true; error: E; index: number }
+```
+
+You **never throw** for parse failures. Failure is a value. This is what makes `lookahead`, backtracking, and combinators like `choice` work cleanly.
+
+### Composition
+
+Combinators take parsers and return new parsers:
+
+```ts
+import * as P from 'parsil'
+
+const word = P.letters // Parser<string>
+const intLit = P.digits.map(Number) // Parser<number>
+const pair = P.sequenceOf([word, P.char('='), intLit]) // Parser<[string, string, number]>
+```
+
+Most parsers also have **methods** for fluent composition:
+
+```ts
+const intLit = P.digits
+  .map(Number)
+  .errorMap(({ index }) => `Expected an integer at ${index}`)
+```
+
+### The two-layer error model
+
+Primitive parsers produce strings shaped like `ParseError @ index N -> <name>: <description>`. Don't expose those raw to end users — map them at meaningful boundaries with `errorMap`:
+
+```ts
+const number = P.digits.map(Number).errorMap(({ index }) => ({
+  code: 'EXPECTED_NUMBER',
+  message: 'Expected a number',
+  at: index,
+}))
+```
+
+The result is now `Parser<number, { code: string; message: string; at: number }>` — the `E` type parameter tracks the error shape through the rest of the pipeline.
+
 ---
 
 ## Quick start
 
+### A tiny arithmetic parser
+
 ```ts
 import * as P from 'parsil'
-// or: import P from 'parsil'; // default namespace export
 
-// Parse one or more letters, then digits
-const wordThenNumber = P.sequenceOf([P.letters, P.digits])
+const num = P.digits.map(Number)
+const add = P.char('+').map(() => (a: number, b: number) => a + b)
+const sub = P.char('-').map(() => (a: number, b: number) => a - b)
+const mul = P.char('*').map(() => (a: number, b: number) => a * b)
 
-const ok = wordThenNumber.run('hello123')
-// { isError: false, result: ['hello', '123'], index: 8 }
+// term = num (* num)*       — '*' binds tighter
+const term = P.chainl1(num, mul)
 
-const fail = wordThenNumber.run('123')
-// { isError: true, error: "ParseError ...", index: 0 }
+// expr = term ((+|-) term)* — left-associative
+const expr = P.chainl1(term, P.choice([add, sub]))
+
+expr.run('2+3*4-1')
+// { isError: false, result: 13, index: 7 }
+// (2 + (3 * 4) - 1)
 ```
 
-### Binary example: IPv4 header (excerpt)
+### A binary header (excerpt)
 
 ```ts
 import * as P from 'parsil'
 
 const tag = (type: string) => (value: unknown) => ({ type, value })
 
-const packetHeader = P.sequenceOf([
+const ipv4Header = P.sequenceOf([
   P.uint(4).map(tag('Version')),
   P.uint(4).map(tag('IHL')),
   P.uint(6).map(tag('DSCP')),
@@ -68,114 +153,452 @@ const packetHeader = P.sequenceOf([
   P.uint(16).map(tag('Total Length')),
 ])
 
-// run against a DataView/ArrayBuffer
+ipv4Header.run(new DataView(buffer)) // returns the tagged tuple
 ```
 
 ---
 
-## Breaking changes in **v2.0.0**
+## API
 
-- **ESM‑only** distribution. The CommonJS entry has been removed. Use `import` (or dynamic import in CJS).
-- **Engines**: Node **≥ 20** (Bun ≥ 1.1).
-- **Character parsers** (`anyChar`, `anyCharExcept`, etc.) return **string** values (not code points) and have updated TS types.
+### Methods on `Parser<T, E>`
 
----
+```ts
+class Parser<T, E = string> {
+  run(input: InputType): ResultType<T, E>
+  fork<F>(input, onError, onSuccess): F
+  map<U>(fn: (value: T) => U): Parser<U, E>
+  chain<U>(fn: (value: T) => Parser<U, E>): Parser<U, E>
+  errorMap<E2>(fn: (info: { error: E; index: number }) => E2): Parser<T, E2>
+  skip<U>(other: Parser<U, E>): Parser<T, E>
+  then<U>(other: Parser<U, E>): Parser<U, E>
+  between<L, R>(left: Parser<L, E>, right: Parser<R, E>): Parser<T, E>
+  lookahead(): Parser<T, E>
+  withSpan(): Parser<{ value: T; start: number; end: number }, E>
+  spanMap<U>(
+    build: (value: T, loc: { start: number; end: number }) => U
+  ): Parser<U, E>
+}
+```
 
-## API (overview)
+| Method      | Description                                                                            |
+| ----------- | -------------------------------------------------------------------------------------- |
+| `run`       | Execute the parser against an input. Returns `Ok<T>` or `Err<E>`.                      |
+| `fork`      | Same as `run` but takes success/error callbacks.                                       |
+| `map`       | Transform the success value.                                                           |
+| `chain`     | Build a follow-up parser from the success value (monadic bind).                        |
+| `errorMap`  | Transform the error value (typically wrap a primitive string into a structured error). |
+| `skip`      | Run `other` after `this`, keep `this`'s result, discard `other`'s.                     |
+| `then`      | Run `other` after `this`, keep `other`'s result, discard `this`'s.                     |
+| `between`   | Shorthand for `left.then(this).skip(right)`.                                           |
+| `lookahead` | Run `this` without advancing the cursor.                                               |
+| `withSpan`  | Wrap the result with `{ value, start, end }` byte offsets.                             |
+| `spanMap`   | Like `withSpan`, but build a custom node from `(value, loc)`.                          |
 
-Parsil exposes a `Parser<T>` type and a set of combinators. Everything below is available as a **named export** and also through the **default namespace**.
+### Type guards
 
-### Methods on `Parser<T>`
+```ts
+isOk<T, E>(result: ResultType<T, E>): result is Ok<T>
+isError<T, E>(result: ResultType<T, E>): result is Err<E>
+```
 
-- **`.run(input)`** → `{ isError, result?, error?, index }`
-- **`.fork(input, onError, onSuccess)`** → call either callback
-- **`.map<U>(fn: (value: T) => U)`** → `Parser<U>`
-- **`.chain<U>(fn: (value: T) => Parser<U>)`** → `Parser<U>`
-- **`.errorMap(fn)`** → map error details
-- **`.skip<U>(other: Parser<U>)`** → `Parser<T>`
-- **`.then<U>(other: Parser<U>)`** → `Parser<U>`
-- **`.between<L, R>(left: Parser<L>, right: Parser<R>)`** → `Parser<U>`
-- **`.lookahead()`** → peek without consuming
-- **`.withSpan()`** → `Parser<{ value: T; start: number; end: number }>` (returns value + byte offsets consumed)
-- **`.spanMap(fn)`** → map `(value, { start, end })` to your own node shape
+### Char primitives
 
-### Core primitives
+| Parser             | Type                                  | Description                                                                            |
+| ------------------ | ------------------------------------- | -------------------------------------------------------------------------------------- |
+| `char(c)`          | `(c: string) => Parser<string>`       | Match a single UTF-8 char exactly.                                                     |
+| `anyChar`          | `Parser<string>`                      | Match any single UTF-8 char. Fails at end of input.                                    |
+| `anyCharExcept(p)` | `<T>(p: Parser<T>) => Parser<string>` | Match any char that does **not** start a match for `p`.                                |
+| `str(s)`           | `(s: string) => Parser<string>`       | Match an exact string.                                                                 |
+| `regex(re)`        | `(re: RegExp) => Parser<string>`      | Match against a regex anchored at the current position. The regex must start with `^`. |
 
-- **`str(text)`** – match a string
-- **`char(c)`** – match a single UTF‑8 char exactly
-- **`regex(re)`** – match via JS RegExp (anchored at current position)
-- **`digit`/`digits`**, **`letter`/`letters`**, **`whitespace`/`optionalWhitespace`**
-- **`anyChar`**, **`anyCharExcept(p)`**
-- **`index`** – current byte offset (non‑consuming)
+```ts
+char('@').run('@home') // result: '@', index: 1
+str('hello').run('hello world') // result: 'hello', index: 5
+regex(/^[a-z]+/).run('abc123') // result: 'abc', index: 3
+```
+
+### Char classes
+
+| Parser               | Type             | Description                                                                    |
+| -------------------- | ---------------- | ------------------------------------------------------------------------------ |
+| `digit`              | `Parser<string>` | Single `[0-9]`.                                                                |
+| `digits`             | `Parser<string>` | One or more `[0-9]`.                                                           |
+| `letter`             | `Parser<string>` | Single `[A-Za-z]`.                                                             |
+| `letters`            | `Parser<string>` | One or more `[A-Za-z]`.                                                        |
+| `whitespace`         | `Parser<string>` | One or more whitespace chars (`\s+`).                                          |
+| `optionalWhitespace` | `Parser<string>` | Zero or more whitespace chars; always succeeds with a (possibly empty) string. |
+
+### Position parsers
+
+| Parser         | Type                    | Description                                        |
+| -------------- | ----------------------- | -------------------------------------------------- |
+| `index`        | `Parser<number, never>` | Current byte offset. Doesn't consume.              |
+| `peek`         | `Parser<number>`        | Next byte's value without consuming. Fails at EOI. |
+| `startOfInput` | `Parser<null, string>`  | Asserts the cursor is at byte 0.                   |
+| `endOfInput`   | `Parser<null, string>`  | Asserts the cursor is past the last byte.          |
 
 ### Combinators
 
-- **`sequenceOf([p1, p2, ...])`** – run in order, collect results
-- **`choice([p1, p2, ...])`** – try in order until one succeeds
-- **`many(p)`** / **`manyOne(p)`** – zero or more / one or more
-- **`exactly(n)(p)`** – repeat parser `n` times
-- **`between(left, right)(value)`** – parse `value` between `left` and `right`
-- **`sepBy(sep)(value)`** / **`sepByOne(sep)(value)`** – separated lists
-- **`chainl1(operand, op)`** / **`chainr1(operand, op)`** – left/right-associative operator-precedence parsing (`op` yields the binary fn)
-- **`possibly(p)`** – optional (returns `null` when absent)
-- **`lookAhead(p)`**, **`peek`**, **`startOfInput`**, **`endOfInput`**
-- **`recursive(thunk)`** – define mutually recursive parsers
-- **`succeed(x)`** / **`fail(msg)`** – constant success/failure
+| Combinator                      | Description                                                              |
+| ------------------------------- | ------------------------------------------------------------------------ |
+| `sequenceOf(parsers)`           | Run parsers in order; succeed with a tuple of results.                   |
+| `choice(parsers)`               | Try each in order; succeed with the first match.                         |
+| `many(p)`                       | Zero or more matches of `p`. Always succeeds (possibly with `[]`).       |
+| `manyOne(p)`                    | One or more matches of `p`. Fails if zero matches.                       |
+| `exactly(n)(p)`                 | Exactly `n` matches of `p`. Curried.                                     |
+| `between(left, right)(content)` | Parse `content` enclosed by `left` and `right`. Curried.                 |
+| `sepBy(sep)(value)`             | Zero or more `value` separated by `sep`. Curried.                        |
+| `sepByOne(sep)(value)`          | One or more `value` separated by `sep`. Curried.                         |
+| `chainl1(operand, op)`          | One or more operands separated by `op`, **left-associative** fold.       |
+| `chainr1(operand, op)`          | One or more operands separated by `op`, **right-associative** fold.      |
+| `possibly(p)`                   | Optional: succeeds with `null` if `p` fails.                             |
+| `lookAhead(p)`                  | Run `p` without advancing the cursor.                                    |
+| `recursive(thunk)`              | Defer parser construction; lets you define mutually recursive parsers.   |
+| `coroutine(fn)`                 | Write a parser as a procedural function that `run`s sub-parsers in turn. |
+| `everythingUntil(p)`            | Collect raw bytes until `p` would succeed; returns `number[]`.           |
+| `everyCharUntil(p)`             | Collect chars until `p` would succeed; returns the decoded string.       |
+
+```ts
+import * as P from 'parsil'
+
+P.sequenceOf([P.str('hello'), P.char(' '), P.letters]).run('hello world')
+// result: ['hello', ' ', 'world']
+
+P.choice([P.str('yes'), P.str('no')]).run('yes')
+// result: 'yes'
+
+P.many(P.digit).run('123abc')
+// result: ['1', '2', '3']
+
+P.sepBy(P.char(','))(P.digits).run('1,2,3')
+// result: ['1', '2', '3']
+
+P.between(P.char('('), P.char(')'))(P.letters).run('(abc)')
+// result: 'abc'
+```
+
+### Constants
+
+| Parser           | Description                                          |
+| ---------------- | ---------------------------------------------------- |
+| `succeed(value)` | Always succeeds with `value`, doesn't consume input. |
+| `fail(error)`    | Always fails with `error`, doesn't consume input.    |
 
 ### Binary helpers
 
-- **`uint(n)`** – read the next **n bits** as an unsigned integer
-- **`int(n)`** – read the next **n bits** as a signed integer
-- Utilities: `getString`, `getUtf8Char`, `getNextCharWidth`, `getCharacterLength`
+| Parser         | Type                              | Description                                           |
+| -------------- | --------------------------------- | ----------------------------------------------------- |
+| `bit`          | `Parser<number>`                  | Read a single bit (0 or 1).                           |
+| `zero`         | `Parser<number>`                  | Assert the next bit is 0.                             |
+| `one`          | `Parser<number>`                  | Assert the next bit is 1.                             |
+| `uint(n)`      | `(n: number) => Parser<number>`   | Read `n` bits as an unsigned integer. `1 ≤ n ≤ 32`.   |
+| `int(n)`       | `(n: number) => Parser<number>`   | Read `n` bits as a signed integer (two's complement). |
+| `rawString(s)` | `(s: string) => Parser<number[]>` | Match the exact ASCII byte sequence of `s`.           |
 
-> Full examples live in the [`examples/`](./examples) directory: simple expression parser, IPv4 header, etc.
+### Building custom parsers
+
+If you need to drop below the combinator layer (e.g., to optimize a hot path or implement a primitive), parsil exposes the state-update helpers:
+
+```ts
+updateState<T, E, T2>(state: ParserState<T, E>, index: number, result: T2): ParserState<T2, E>
+updateResult<T, E, T2>(state: ParserState<T, E>, result: T2): ParserState<T2, E>
+updateError<T, E, E2>(state: ParserState<T, E>, error: E2): ParserState<T, E2>
+```
+
+You construct a parser from a state-transformer function:
+
+```ts
+new Parser((state) => {
+  if (state.isError) return state
+  // ... your transformation
+  return updateState(state, newIndex, newResult)
+})
+```
+
+### UTF-8 utilities
+
+`getString`, `getNextCharWidth`, `getUtf8Char`, `getCharacterLength`, `encoder`, `decoder` are exported from `parsil` for parsers that need byte-level UTF-8 awareness. Most consumers don't need these; they're documented for completeness.
+
+### Input types
+
+`Parser.run` accepts `string`, `ArrayBuffer`, `DataView`, or any numeric `TypedArray`. The `isTypedArray(x)` predicate and the `InputType` / `InputTypes` types are exported alongside for advanced cases (e.g. writing a parser-runner wrapper that needs to dispatch on input shape).
+
+---
+
+## Recipes
+
+### Operator precedence
+
+`chainl1` / `chainr1` express precedence cleanly. Layer one chain per precedence level:
+
+```ts
+import * as P from 'parsil'
+
+const num = P.digits.map(Number)
+const op = (ch: string, fn: (a: number, b: number) => number) =>
+  P.char(ch).map(() => fn)
+
+const pow = op('^', (a, b) => a ** b)
+const mul = op('*', (a, b) => a * b)
+const div = op('/', (a, b) => a / b)
+const add = op('+', (a, b) => a + b)
+const sub = op('-', (a, b) => a - b)
+
+// Right-associative: 2^3^2 = 2 ^ (3 ^ 2) = 512
+const factor = P.chainr1(num, pow)
+// Left-associative
+const term = P.chainl1(factor, P.choice([mul, div]))
+const expr = P.chainl1(term, P.choice([add, sub]))
+
+expr.run('2+3*2^3') // 2 + (3 * (2 ^ 3)) = 26
+```
+
+### AST nodes with byte spans
+
+`spanMap` attaches start/end byte offsets to whatever shape you want:
+
+```ts
+import * as P from 'parsil'
+
+type IdentNode = {
+  kind: 'Ident'
+  name: string
+  loc: { start: number; end: number }
+}
+
+const identifier: P.Parser<IdentNode> = P.regex(
+  /^[A-Za-z_][A-Za-z0-9_]*/
+).spanMap((name, loc) => ({ kind: 'Ident', name, loc }))
+
+identifier.run('foo123!')
+// {
+//   isError: false,
+//   result: { kind: 'Ident', name: 'foo123', loc: { start: 0, end: 6 } },
+//   index: 6,
+// }
+```
+
+Editors can convert byte offsets to `(line, col)` after the parse runs.
+
+### Whitespace at lexeme boundary
+
+Skip optional whitespace after every token so your grammar doesn't have to spell it out:
+
+```ts
+import * as P from 'parsil'
+
+const lex = <T>(p: P.Parser<T>) => p.skip(P.optionalWhitespace)
+
+const lparen = lex(P.char('('))
+const rparen = lex(P.char(')'))
+const word = lex(P.letters)
+
+const callish = P.sequenceOf([
+  word,
+  lparen,
+  P.sepBy(lex(P.char(',')))(word),
+  rparen,
+])
+
+callish.run('foo ( a , b , c )') // ['foo', '(', ['a', 'b', 'c'], ')']
+```
+
+### Recursive structures
+
+Use `recursive` to break the chicken-and-egg of a parser referencing itself:
+
+```ts
+import * as P from 'parsil'
+
+type JsonValue = string | number | JsonValue[]
+
+const value: P.Parser<JsonValue> = P.recursive(() =>
+  P.choice([number, string, array])
+)
+const number = P.digits.map(Number)
+const string = P.between(P.char('"'), P.char('"'))(P.regex(/^[^"]*/))
+const array = P.between(P.char('['), P.char(']'))(P.sepBy(P.char(','))(value))
+
+value.run('[1,2,["a","b"],3]')
+// result: [1, 2, ['a', 'b'], 3]
+```
+
+### Imperative style with `coroutine`
+
+When a grammar branches on intermediate results, `coroutine` reads top-to-bottom instead of nesting `chain` calls sideways:
+
+```ts
+import * as P from 'parsil'
+
+const keyValue = P.coroutine((run) => {
+  const key = run(P.letters)
+  run(P.char('='))
+  const value = run(P.digits.map(Number))
+  return { [key]: value }
+})
+
+keyValue.run('age=42') // { age: 42 }
+```
+
+### Binary protocol
+
+Mix bit and byte primitives:
+
+```ts
+import * as P from 'parsil'
+
+// First nibble = type, second nibble = length, then `length` bytes payload.
+const message = P.coroutine((run) => {
+  const type = run(P.uint(4))
+  const length = run(P.uint(4))
+  const payload = run(P.exactly(length)(P.uint(8)))
+  return { type, length, payload }
+})
+
+const buf = new Uint8Array([0x35, 0x10, 0x20, 0x30, 0x40, 0x50])
+message.run(new DataView(buf.buffer))
+// { type: 3, length: 5, payload: [0x10, 0x20, 0x30, 0x40, 0x50] }
+```
 
 ---
 
 ## Error handling
 
-Use `.fork` if you want callbacks instead of returned objects:
+Use `fork` if you prefer callbacks over a result envelope:
 
 ```ts
 P.str('hello').fork(
-  'hello',
+  'hello world',
   (error, state) => console.error(error, state),
-  (result, state) => console.log(result, state)
+  (result, state) => console.log('matched', result, 'at', state.index)
 )
 ```
 
+Layer `errorMap` to turn primitive `ParseError` strings into structured errors at meaningful boundaries — typically once per "token" in your grammar. Inside a chain, errors flow through unmodified, so you only need to map at the boundary where users will see them.
+
 ---
 
-## Source positions & spans
+## Source positions and spans
 
-Parsil exposes a non‑consuming `index` parser and span helpers on every parser instance:
+`index`, `withSpan`, and `spanMap` make positions first-class without forcing every parser to carry them.
 
 ```ts
 import * as P from 'parsil'
 
-// Read current offset
-const at = P.index.run('hello') // { result: 0, index: 0 }
+// Read current offset (non-consuming).
+P.index.run('hello') // result: 0, index: 0
 
-// Attach start/end byte offsets to any parser
-const greet = P.str('hello').withSpan()
-// greet.run('hello!') → { result: { value: 'hello', start: 0, end: 5 }, index: 5 }
+// Attach start/end offsets to any parser.
+P.str('hello').withSpan().run('hello!')
+// result: { value: 'hello', start: 0, end: 5 }, index: 5
 
-// Map value + span to your own node shape (e.g., for AST tooling)
-const node = P.str('XY').spanMap((value, loc) => ({ kind: 'tok', value, loc }))
-// node.run('XY!') → { result: { kind: 'tok', value: 'XY', loc: { start: 0, end: 2 } }, index: 2 }
+// Project value + span into a custom node.
+P.str('XY')
+  .spanMap((value, loc) => ({ kind: 'tok', value, loc }))
+  .run('XY!')
+// result: { kind: 'tok', value: 'XY', loc: { start: 0, end: 2 } }, index: 2
 ```
 
-Offsets are byte‑based; editors like VS Code/CodeMirror can convert to line/column.
+Offsets are byte-based. Convert to line/col yourself when surfacing them in editors.
 
 ---
 
 ## Contributing
 
-- Run tests: `bun test`
-- Lint: `bun run lint`
-- Build: `bun run build`
+PRs welcome. Parsil is a tight, opinionated codebase — the conventions below are enforced by hooks, lint, and a CI gate so contributions stay consistent.
 
-PRs welcome! Please add tests for new combinators.
+### Local quality gates
+
+Run before pushing. The pre-commit hook also runs them automatically on staged files.
+
+```bash
+bun install
+bun run lint        # ESLint with --max-warnings 0; custom rule forbids relative imports in src/
+bun run typecheck
+bun test
+bun run knip:check  # dead code + unused deps
+bun run build       # ESM bundle + .d.ts
+```
+
+### Branching
+
+Branch from `main`. One issue → one branch → one PR.
+
+```
+feat/<short>      new combinator or public API
+fix/<short>       bug fix
+chore/<short>     tooling, deps, build, infra
+docs/<short>      docs-only change
+refactor/<short>  internal restructuring with no behavior change
+```
+
+### Commit convention
+
+[Conventional Commits](https://www.conventionalcommits.org/) with a strict, mandatory scope. The `commit-msg` hook runs `commitlint`. Allowed scopes:
+
+- `parser` — the `Parser` class, `ParserState`, result envelope.
+- `parsers/<name>` — a specific combinator under `src/parsers/<name>/`. The list is auto-generated from the filesystem; create the directory and the scope is enabled.
+- `util` — `src/util/*` (UTF-8 helpers).
+- `deps` — dependency bumps.
+- `tooling` — husky, commitlint, lint-staged, knip, ESLint, prettier, build scripts.
+- `ci` — `.github/workflows/*` and the release pipeline.
+- `docs` — JSDoc, README, in-source documentation.
+- `meta` — top-level repo files (LICENSE, `.gitignore`, root configs).
+
+See [`commitlint.config.mjs`](./commitlint.config.mjs) for the exhaustive list.
+
+### Changesets
+
+Every PR that introduces a user-visible change lands with a changeset file under `.changeset/`. The CI gate `changeset-check` enforces this on PR titles.
+
+**Add a changeset** for: `feat`, `fix`, `perf`, breaking `refactor`, anything that affects the published API or runtime behavior consumers will notice.
+
+**Skip the changeset** for: `chore`, `docs`, `test`, internal-only `refactor`, `ci`, `build`, `style`. End-users don't care about these in a CHANGELOG.
+
+```bash
+bun changeset           # interactive: pick patch/minor/major, write summary
+# Edits a file at .changeset/<random-name>.md — commit it with the rest of the PR.
+```
+
+When in doubt, add one. They're cheap and easy to delete.
+
+### Path alias in `src/`
+
+Inside `src/`, every cross-directory import uses the `@parsil/*` alias mapped to `./src/*`. Relative imports (`./`, `../`) are forbidden by a custom ESLint rule that **autofixes** violations.
+
+```ts
+// Good
+import { Parser, updateResult } from '@parsil/parser'
+import { many } from '@parsil/parsers/many'
+
+// Bad — autofix flips this to '@parsil/parser'
+import { Parser } from '../../parser'
+```
+
+Tests under `tests/` import the public surface as `import { ... } from '@parsil'` (the package root alias), the same way an end-user would.
+
+### Tests
+
+`bun test` runs everything. Tests mirror `src/`: `src/parsers/<name>/<file>.ts` ↔ `tests/parsers/<name>/<file>.spec.ts`. Every parser spec covers at minimum:
+
+- Happy path
+- One concrete failure (wrong input or wrong type)
+- Edge cases: empty input, end of input
+
+Use `assertIsOk` / `assertIsError` from `tests/util/test-util.ts` to keep specs concise.
+
+### Self-review before declaring done
+
+Before requesting review on a PR, walk this short checklist:
+
+1. **Re-read the issue's acceptance criteria line by line.** Tick each one or note explicitly why it's deferred.
+2. **Run all gates** locally (`lint`, `typecheck`, `test`, `knip:check`, `build`). The pre-commit hook is good but not a substitute for an end-to-end pass.
+3. **Doc propagation.** New public export → add it to the relevant section of this README and write its JSDoc. The doc check is "would a reader of the README know my export exists?".
+4. **Changeset** added at the right level for `feat`/`fix`/`perf`/breaking.
+5. **No leftover scaffolding**: `console.log`, commented-out code, unused imports, `// TODO` without a linked issue.
+6. **Diff scope** matches what the issue says it should — drive-by refactors go in their own PR.
+
+Green tests are necessary, **not sufficient**. Issues list explicit acceptance criteria beyond CI; skipping them is the failure mode this checklist guards against.
 
 ---
 
@@ -187,36 +610,4 @@ MIT © [Maxime Blanc](https://github.com/salty-max)
 
 ## Changelog
 
-Further changes are listed in [CHANGELOG.md](./CHANGELOG.md).
-
-### v2.0.0 (BREAKING)
-
-- **ESM-only** distribution. CommonJS entry removed. Use `import` (or dynamic `import()` in CJS).
-- **Engines**: Node **≥ 20**, Bun **≥ 1.1**.
-- **Character parsers** (`anyChar`, `anyCharExcept`, etc.) now return **string** values; types updated accordingly.
-- Build & DX: moved to **Bun** for tests/build; CI updated; tests relocated out of `src/`.
-
-### v1.6.0
-
-- New parsers: [`everythingUntil`](#everythinguntil), [`everyCharUntil`](#everycharuntil).
-
-### v1.5.0
-
-- New parser: [`anyCharExcept`](#anycharexcept).
-
-### v1.4.0
-
-- New parsers: [`lookAhead`](#lookahead), [`startOfInput`](#startofinput), [`endOfInput`](#endofinput).
-
-### v1.3.0
-
-- Improved type inference in `choice`, `sequenceOf`, and `exactly` using TS variadic tuple types.
-
-### v1.2.0
-
-- New parsers: [`exactly`](#exactly), [`peek`](#peek).
-
-### v1.1.0
-
-- New parsers: [`coroutine`](#coroutine), [`digit`](#digit), [`letter`](#letter), [`possibly`](#possibly), [`optionalWhitespace`](#optionalwhitespace), [`whitespace`](#whitespace).
-  `
+See [CHANGELOG.md](./CHANGELOG.md) — driven by changesets accumulated on `main` and consumed at release time.
