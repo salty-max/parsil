@@ -1,1 +1,1 @@
-export * from './str'
+export * from '@parsil/parsers/str/str'

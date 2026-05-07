@@ -1,4 +1,4 @@
-import { Parser, updateResult } from "../../parser";
+import { Parser, updateResult } from "@parsil/parser";
 
 const errorExpectRegex = /ParseError @ index (\d+) ->.+Expected/
 

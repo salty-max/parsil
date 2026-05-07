@@ -1,1 +1,1 @@
-export * from './look-ahead'
+export * from '@parsil/parsers/look-ahead/look-ahead'

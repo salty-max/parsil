@@ -1,4 +1,4 @@
-import { Parser, updateError, updateState } from '../../parser/parser'
+import { Parser, updateError, updateState } from '@parsil/parser/parser'
 
 /**
  * `bit` reads the next bit from the input.

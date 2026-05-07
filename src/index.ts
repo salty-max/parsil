@@ -1,4 +1,4 @@
-import { InputType, InputTypes } from './input-types'
+import { InputType, InputTypes } from '@parsil/input-types'
 import {
   Err,
   Ok,
@@ -10,9 +10,9 @@ import {
   updateState,
   isOk,
   isError,
-} from './parser'
-export * from './parsers'
-import * as Parsers from './parsers'
+} from '@parsil/parser'
+export * from '@parsil/parsers'
+import * as Parsers from '@parsil/parsers'
 import {
   decoder,
   encoder,
@@ -20,7 +20,7 @@ import {
   getNextCharWidth,
   getString,
   getUtf8Char,
-} from './util'
+} from '@parsil/util'
 
 export type { ParserState, ResultType, Err, Ok, InputType }
 

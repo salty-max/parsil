@@ -1,4 +1,4 @@
-import { Parser, ParserState, updateResult } from '../../parser/parser'
+import { Parser, ParserState, updateResult } from '@parsil/parser/parser'
 
 /**
  * A function that represents the shape of a parser function.

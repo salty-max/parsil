@@ -1,5 +1,5 @@
-import { Parser, updateError, updateState } from '../../parser'
-import { getNextCharWidth, getUtf8Char } from '../../util'
+import { Parser, updateError, updateState } from '@parsil/parser'
+import { getNextCharWidth, getUtf8Char } from '@parsil/util'
 
 /**
  * `anyCharExcept` matches any character except the ones matched by the given parser.

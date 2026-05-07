@@ -1,4 +1,4 @@
-import { Parser, updateResult } from '../../parser/parser'
+import { Parser, updateResult } from '@parsil/parser/parser'
 
 /**
  * `sequenceOf` is a parser combinator that accepts an array of parsers and applies them

@@ -1,5 +1,5 @@
-import { Parser, updateError } from '../../parser'
-import { sepBy } from './sep-by'
+import { Parser, updateError } from '@parsil/parser'
+import { sepBy } from '@parsil/parsers/sep-by/sep-by'
 
 /**
  * `sepByOne` is a parser combinator that accepts two parsers as arguments: `sepParser` and `valueParser`.

@@ -1,2 +1,2 @@
-export * from './digit'
-export * from './digits'
+export * from '@parsil/parsers/digits/digit'
+export * from '@parsil/parsers/digits/digits'

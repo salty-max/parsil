@@ -1,4 +1,4 @@
-import { Parser, updateResult } from '../../parser'
+import { Parser, updateResult } from '@parsil/parser'
 
 /**
  * `many` is a parser combinator that applies a given parser zero or more times.

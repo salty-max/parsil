@@ -1,1 +1,1 @@
-export * from './coroutine'
+export * from '@parsil/parsers/coroutine/coroutine'

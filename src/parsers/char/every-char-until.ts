@@ -1,6 +1,6 @@
-import { Parser } from '../../parser'
-import { decoder } from '../../util'
-import { everythingUntil } from '../everything-until'
+import { Parser } from '@parsil/parser'
+import { decoder } from '@parsil/util'
+import { everythingUntil } from '@parsil/parsers/everything-until'
 
 /**
  * `everyCharUntil` is a higher order parser that parses an input stream until a specific condition, defined by another parser, is met.

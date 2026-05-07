@@ -1,1 +1,1 @@
-export * from './recursive'
+export * from '@parsil/parsers/recursive/recursive'

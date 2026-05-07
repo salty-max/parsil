@@ -1,1 +1,1 @@
-export * from './end-of-input'
+export * from '@parsil/parsers/end-of-input/end-of-input'

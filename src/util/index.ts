@@ -1,1 +1,1 @@
-export * from './unicode'
+export * from '@parsil/util/unicode'

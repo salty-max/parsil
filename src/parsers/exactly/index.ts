@@ -1,1 +1,1 @@
-export * from "./exactly"
+export * from "@parsil/parsers/exactly/exactly"

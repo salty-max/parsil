@@ -1,1 +1,1 @@
-export * from './choice'
+export * from '@parsil/parsers/choice/choice'
