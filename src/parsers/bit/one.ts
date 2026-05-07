@@ -1,15 +1,15 @@
-import { Parser, updateError, updateState } from '@parsil/parser/parser'
+import {
+  parseError,
+  Parser,
+  updateError,
+  updateState,
+} from '@parsil/parser/parser'
 import { bit } from '@parsil/parsers/bit/bit'
 
 /**
- * `one` is similar to `bit` but expect the parsed bit to be 1.
+ * `one` matches the next bit only if it is 1.
  *
- * @example
- * const parser = one;
- * const data = new Uint8Array([42]).buffer
- * parser.run(new Dataview(data))  // returns the next bit from the bitset if 1, else returns an error
- *
- * @returns {Parser<number>} A parser that reads the next bit (1) from the input.
+ * @returns A parser that reads the next bit and asserts it is 1.
  */
 export const one: Parser<number> = new Parser((state) => {
   if (state.isError) return state
@@ -19,7 +19,10 @@ export const one: Parser<number> = new Parser((state) => {
   if (bitAtIndex.result !== 1) {
     return updateError(
       state,
-      `ParseError @ index ${state.index} -> one: Expected 1 but got 0`
+      parseError('one', state.index, 'Expected 1 but got 0', {
+        expected: '1',
+        actual: '0',
+      })
     )
   }
 

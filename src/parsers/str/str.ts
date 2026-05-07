@@ -1,4 +1,6 @@
 import {
+  ParseError,
+  parseError,
   Parser,
   ParserState,
   updateError,
@@ -31,7 +33,7 @@ export const str = (s: string): Parser<string> => {
 
   const encodedStr = encoder.encode(s)
 
-  return new Parser((state): ParserState<string, string> => {
+  return new Parser((state): ParserState<string, ParseError> => {
     const { dataView, index, isError } = state
 
     if (isError) return state
@@ -41,7 +43,12 @@ export const str = (s: string): Parser<string> => {
     if (remainingBytes < encodedStr.byteLength) {
       return updateError(
         state,
-        `ParseError @ index ${index} -> str: Tried to match '${s}', but got unexpected end of input`
+        parseError(
+          'str',
+          index,
+          `Tried to match '${s}', but got unexpected end of input`,
+          { expected: s }
+        )
       )
     }
 
@@ -52,7 +59,12 @@ export const str = (s: string): Parser<string> => {
 
     return updateError(
       state,
-      `ParseError @ index ${index} -> str: Tried to match '${s}', but got '${stringAtIndex}...'`
+      parseError(
+        'str',
+        index,
+        `Tried to match '${s}', but got '${stringAtIndex}...'`,
+        { expected: s, actual: stringAtIndex }
+      )
     )
   })
 }

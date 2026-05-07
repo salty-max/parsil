@@ -1,4 +1,4 @@
-import { char, sequenceOf, str } from '@parsil'
+import { char, formatParseError, sequenceOf, str } from '@parsil'
 import { describe, expect, it } from 'bun:test'
 
 import { assertIsError } from '../../util/test-util'
@@ -22,7 +22,11 @@ describe('char', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error: "ParseError @ index 0 -> char: Expected '@', but got '$'",
+      error: expect.objectContaining({
+        parser: 'char',
+        index: 0,
+        message: `Expected '@', but got '$'`,
+      }),
     })
   })
 
@@ -33,8 +37,11 @@ describe('char', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error:
-        "ParseError @ index 0 -> char: Expected '@', but got unexpected end of input",
+      error: expect.objectContaining({
+        parser: 'char',
+        index: 0,
+        message: `Expected '@', but got unexpected end of input`,
+      }),
     })
   })
 
@@ -52,7 +59,7 @@ describe('char', () => {
     const res = parser.run('hello world')
 
     assertIsError(res)
-    expect(res.error).toBe(
+    expect(formatParseError(res.error)).toBe(
       "ParseError @ index 6 -> char: Expected '!', but got 'w'"
     )
   })
@@ -62,7 +69,7 @@ describe('char', () => {
     const res = parser.run('abc')
 
     assertIsError(res)
-    expect(res.error).toBe(
+    expect(formatParseError(res.error)).toBe(
       "ParseError @ index 3 -> char: Expected '!', but got unexpected end of input"
     )
   })

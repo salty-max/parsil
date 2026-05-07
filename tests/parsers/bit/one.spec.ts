@@ -24,7 +24,11 @@ describe('one', () => {
     expect(result).toEqual({
       isError: true,
       index: 0,
-      error: 'ParseError @ index 0 -> one: Expected 1 but got 0',
+      error: expect.objectContaining({
+        parser: 'one',
+        index: 0,
+        message: 'Expected 1 but got 0',
+      }),
     })
   })
 })

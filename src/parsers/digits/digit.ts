@@ -1,18 +1,16 @@
-import { Parser, updateError, updateState } from '@parsil/parser'
+import { parseError, Parser, updateError, updateState } from '@parsil/parser'
 import { getNextCharWidth, getUtf8Char } from '@parsil/util'
 
 const digitRegex = /^\d/
 
 /**
- * `digit` reads a single digit from the input.
- * It matches any numeric digit character from 0 to 9.
+ * `digit` matches a single digit character `[0-9]`.
  *
  * @example
- * const parser = digit;
- * parser.run('1'); // returns { isError: false, result: '1', index: 1 }
- * parser.run('a'); // returns { isError: true, error: "ParseError @ index 0 -> digit: Expected digit, got 'a'", index: 0 }
+ * digit.run('1') // { isError: false, result: '1', index: 1 }
+ * digit.run('a') // ParseError @ index 0 -> digit: Expected digit, but got 'a'
  *
- * @returns {Parser<string>} A parser that reads a single digit from the input.
+ * @returns A parser that matches a single digit.
  */
 export const digit: Parser<string> = new Parser((state) => {
   if (state.isError) return state
@@ -29,13 +27,18 @@ export const digit: Parser<string> = new Parser((state) => {
         ? updateState(state, index + charWidth, char)
         : updateError(
             state,
-            `ParseError @ index ${index} -> digit: Expected digit, but got '${char}'`
+            parseError('digit', index, `Expected digit, but got '${char}'`, {
+              expected: '[0-9]',
+              actual: char,
+            })
           )
     }
   }
 
   return updateError(
     state,
-    `ParseError @ index ${index} -> digit: Expected digit, but got end of input.`
+    parseError('digit', index, 'Expected digit, but got end of input.', {
+      expected: '[0-9]',
+    })
   )
 })

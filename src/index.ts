@@ -1,9 +1,12 @@
 import { InputType, InputTypes } from '@parsil/input-types'
 import {
   Err,
+  formatParseError,
   isError,
   isOk,
   Ok,
+  ParseError,
+  parseError,
   Parser,
   ParserState,
   ResultType,
@@ -23,11 +26,12 @@ import {
 
 export * from '@parsil/parsers'
 
-export type { Err, InputType, Ok, ParserState, ResultType }
+export type { Err, InputType, Ok, ParseError, ParserState, ResultType }
 
 export {
   decoder,
   encoder,
+  formatParseError,
   getCharacterLength,
   getNextCharWidth,
   getString,
@@ -35,6 +39,7 @@ export {
   InputTypes,
   isError,
   isOk,
+  parseError,
   Parser,
   updateError,
   updateResult,
@@ -50,6 +55,8 @@ export default {
   updateError,
   updateState,
   updateResult,
+  formatParseError,
+  parseError,
   InputTypes,
   getCharacterLength,
   getNextCharWidth,

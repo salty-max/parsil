@@ -1,4 +1,4 @@
-import { manyOne, str } from '@parsil'
+import { formatParseError, manyOne, str } from '@parsil'
 import { describe, expect, it } from 'bun:test'
 
 import { assertIsError, assertIsOk } from '../../util/test-util'
@@ -17,7 +17,7 @@ describe('manyOne', () => {
     const result = parser.run('barbar')
 
     assertIsError(result)
-    expect(result.error).toBe(
+    expect(formatParseError(result.error)).toBe(
       `ParseError @ index 0 -> manyOne: Expected to match at least one value`
     )
   })

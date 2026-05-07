@@ -31,7 +31,11 @@ describe('lookAhead', () => {
     assertIsError(result)
     expect(result).toStrictEqual({
       isError: true,
-      error: `ParseError @ index 6 -> str: Tried to match 'world', but got 'there...'`,
+      error: expect.objectContaining({
+        parser: 'str',
+        index: 6,
+        message: `Tried to match 'world', but got 'there...'`,
+      }),
       index: 6,
     })
   })

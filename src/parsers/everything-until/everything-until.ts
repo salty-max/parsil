@@ -1,4 +1,5 @@
 import {
+  parseError,
   Parser,
   updateError,
   updateResult,
@@ -37,7 +38,7 @@ export const everythingUntil = <T>(parser: Parser<T>): Parser<number[]> =>
         if (dataView.byteLength <= index) {
           return updateError(
             nextState,
-            `ParseError @ index ${index} -> everythingUntil: Unexpected end of input`
+            parseError('everythingUntil', index, 'Unexpected end of input')
           )
         }
 

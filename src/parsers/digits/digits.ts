@@ -1,19 +1,19 @@
-import { Parser } from '@parsil/parser/parser'
+import { parseError, Parser } from '@parsil/parser/parser'
 import { regex } from '@parsil/parsers/regex'
 
 const digitsRegex = /^\d+/
 
 /**
- * `digits` is a parser that matches one or more digit characters at the start of its input,
- * using a regular expression. If it finds a match, it consumes the matched characters and returns them as a string.
- * If no match is found, it fails with an error message.
+ * `digits` matches one or more digit characters at the start of the
+ * input. On failure, emits a structured `ParseError` with `parser:
+ * 'digits'`.
  *
  * @example
- * digits.run("123abc")  // returns "123"
- * digits.run("abc123")  // returns "ParseError @ index 0 -> digits: Expected digits"
+ * digits.run('123abc') // result: '123'
+ * digits.run('abc123') // ParseError @ index 0 -> digits: Expected digits
  *
- * @returns {Parser<string>} A parser that matches one or more digit characters.
+ * @returns A parser that matches one or more digit characters.
  */
-export const digits: Parser<string> = regex(digitsRegex).errorMap(
-  ({ index }) => `ParseError @ index ${index} -> digits: Expected digits`
+export const digits: Parser<string> = regex(digitsRegex).errorMap(({ index }) =>
+  parseError('digits', index, 'Expected digits', { expected: '[0-9]+' })
 )

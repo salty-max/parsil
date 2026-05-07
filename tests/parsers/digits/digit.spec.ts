@@ -19,7 +19,11 @@ describe('digit', () => {
 
     expect(result).toStrictEqual({
       isError: true,
-      error: "ParseError @ index 0 -> digit: Expected digit, but got 'a'",
+      error: expect.objectContaining({
+        parser: 'digit',
+        index: 0,
+        message: "Expected digit, but got 'a'",
+      }),
       index: 0,
     })
   })
@@ -30,8 +34,11 @@ describe('digit', () => {
 
     expect(result).toStrictEqual({
       isError: true,
-      error:
-        'ParseError @ index 0 -> digit: Expected digit, but got end of input.',
+      error: expect.objectContaining({
+        parser: 'digit',
+        index: 0,
+        message: 'Expected digit, but got end of input.',
+      }),
       index: 0,
     })
   })

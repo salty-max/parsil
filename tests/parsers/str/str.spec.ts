@@ -20,8 +20,11 @@ describe('str', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error:
-        "ParseError @ index 0 -> str: Tried to match 'foo', but got 'bar...'",
+      error: expect.objectContaining({
+        parser: 'str',
+        index: 0,
+        message: "Tried to match 'foo', but got 'bar...'",
+      }),
     })
   })
 
@@ -32,8 +35,11 @@ describe('str', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error:
-        "ParseError @ index 0 -> str: Tried to match 'foo', but got unexpected end of input",
+      error: expect.objectContaining({
+        parser: 'str',
+        index: 0,
+        message: "Tried to match 'foo', but got unexpected end of input",
+      }),
     })
   })
 

@@ -19,7 +19,11 @@ describe('letter', () => {
 
     expect(result).toStrictEqual({
       isError: true,
-      error: "ParseError @ index 0 -> letter: Expected letter, but got '1'",
+      error: expect.objectContaining({
+        parser: 'letter',
+        index: 0,
+        message: `Expected letter, but got '1'`,
+      }),
       index: 0,
     })
   })
@@ -30,8 +34,11 @@ describe('letter', () => {
 
     expect(result).toStrictEqual({
       isError: true,
-      error:
-        'ParseError @ index 0 -> letter: Expected letter, but got end of input.',
+      error: expect.objectContaining({
+        parser: 'letter',
+        index: 0,
+        message: 'Expected letter, but got end of input.',
+      }),
       index: 0,
     })
   })

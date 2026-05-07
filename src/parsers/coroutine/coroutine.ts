@@ -1,4 +1,6 @@
 import {
+  ParseError,
+  parseError,
   Parser,
   ParserState,
   updateError,
@@ -9,7 +11,7 @@ import {
  * A function that represents the shape of a parser function.
  * @template T The type of the parser result.
  */
-type ParserFn<T, E = string> = (run: <K>(parser: Parser<K, E>) => K) => T
+type ParserFn<T, E = ParseError> = (run: <K>(parser: Parser<K, E>) => K) => T
 
 /**
  * `coroutine` lets you write a parser as a straight-line procedure that
@@ -38,7 +40,7 @@ type ParserFn<T, E = string> = (run: <K>(parser: Parser<K, E>) => K) => T
  *   short-circuits the coroutine on parse failure.
  * @returns A parser that runs the procedure as a single composite parser.
  */
-export const coroutine = <T, E = string>(
+export const coroutine = <T, E = ParseError>(
   parserFn: ParserFn<T, E>
 ): Parser<T, E> => {
   return new Parser<T, E>((state) => {
@@ -47,12 +49,20 @@ export const coroutine = <T, E = string>(
     const run = <K>(parser: Parser<K, E>): K => {
       if (!(parser && parser instanceof Parser)) {
         // Programming error in the caller's coroutine body — the value
-        // passed to `run` was not a Parser. Surface it as a parse failure
-        // with the conventional ParseError prefix so consumers' errorMap
+        // passed to `run` was not a Parser. Surface it as a parse
+        // failure with a structured ParseError so consumers' errorMap
         // chains can intercept it.
+        const got =
+          typeof parser === 'object' && parser !== null
+            ? Object.prototype.toString.call(parser)
+            : String(parser)
         throw updateError(
           currentState,
-          `ParseError @ index ${currentState.index} -> coroutine: 'run' must be called with a Parser, got ${typeof parser === 'object' && parser !== null ? Object.prototype.toString.call(parser) : String(parser)}`
+          parseError(
+            'coroutine',
+            currentState.index,
+            `'run' must be called with a Parser, got ${got}`
+          )
         )
       }
 
@@ -84,7 +94,7 @@ export const coroutine = <T, E = string>(
           : `Threw non-Error value: ${String(e)}`
       return updateError(
         currentState,
-        `ParseError @ index ${currentState.index} -> coroutine: ${msg}`
+        parseError('coroutine', currentState.index, msg)
       ) as ParserState<T, E>
     }
   })

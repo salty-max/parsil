@@ -1,4 +1,4 @@
-import { Parser } from '@parsil/parser/parser'
+import { ParseError, parseError, Parser } from '@parsil/parser/parser'
 import { uint } from '@parsil/parsers/bit/uint'
 import { fail } from '@parsil/parsers/fail'
 import { sequenceOf } from '@parsil/parsers/sequence-of'
@@ -19,7 +19,7 @@ import { succeed } from '@parsil/parsers/succeed'
  * @returns A parser that matches the provided string as a sequence of ASCII codes.
  * @throws {Error} If the input string is empty.
  */
-export const rawString = (s: string): Parser<number[], string> => {
+export const rawString = (s: string): Parser<number[]> => {
   if (s.length < 1) {
     throw new Error(`rawString: input must be at least 1 character`)
   }
@@ -27,16 +27,24 @@ export const rawString = (s: string): Parser<number[], string> => {
   const bytes = [...s]
     .map((c) => c.charCodeAt(0))
     .map((n) => {
-      return uint(8).chain((res) => {
+      return uint(8).chain((res): Parser<number> => {
         if (res === n) {
-          return succeed(n)
-        } else {
-          return fail(
-            `ParseError -> rawString: Expected character ${String.fromCharCode(
-              n
-            )}, but got ${String.fromCharCode(res)}`
-          )
+          return succeed<number>(n)
         }
+        return fail<ParseError>(
+          parseError(
+            'rawString',
+            // The chain consumer doesn't know the index here; uint(8)
+            // already advanced. Use 0 as a placeholder; the surface
+            // wrapper carries the actual position.
+            0,
+            `Expected character ${String.fromCharCode(n)}, but got ${String.fromCharCode(res)}`,
+            {
+              expected: String.fromCharCode(n),
+              actual: String.fromCharCode(res),
+            }
+          )
+        )
       })
     })
 

@@ -18,7 +18,11 @@ describe('digits', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error: 'ParseError @ index 0 -> digits: Expected digits',
+      error: expect.objectContaining({
+        parser: 'digits',
+        index: 0,
+        message: 'Expected digits',
+      }),
     })
   })
 
@@ -28,7 +32,11 @@ describe('digits', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error: 'ParseError @ index 0 -> digits: Expected digits',
+      error: expect.objectContaining({
+        parser: 'digits',
+        index: 0,
+        message: 'Expected digits',
+      }),
     })
   })
 })

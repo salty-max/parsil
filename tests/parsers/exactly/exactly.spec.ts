@@ -19,7 +19,11 @@ describe('exactly', () => {
 
     expect(result).toEqual({
       isError: true,
-      error: "ParseError @ index 0 -> exactly: Expected 3 digit, but got 'a'",
+      error: expect.objectContaining({
+        parser: 'exactly',
+        index: 0,
+        message: `Expected 3 digit, but got 'a'`,
+      }),
       index: 0,
     })
   })
