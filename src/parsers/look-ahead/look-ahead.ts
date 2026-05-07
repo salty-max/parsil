@@ -7,8 +7,9 @@ import { Parser, updateError, updateResult } from '@parsil/parser/parser'
  * const parser = sequenceOf([str("hello "), lookAhead(str("world")), str("world")])
  * parser.run("hello world")  { isError: false, result: ["hello ", "world", "world"], index: 11 }
  *
- * @param parser
- * @returns
+ * @param parser The parser to apply at the current position.
+ * @returns A parser that yields `parser`'s result without advancing the
+ *   input cursor; if `parser` fails, the error is forwarded.
  */
 export const lookAhead = <T, E>(parser: Parser<T, E>): Parser<T, E> =>
   new Parser((state) => {
