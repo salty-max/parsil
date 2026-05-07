@@ -28,7 +28,7 @@ export const rawString = (s: string): Parser<number[], string> => {
     .map((c) => c.charCodeAt(0))
     .map((n) => {
       return uint(8).chain((res) => {
-        if (res == n) {
+        if (res === n) {
           return succeed(n)
         } else {
           return fail(
