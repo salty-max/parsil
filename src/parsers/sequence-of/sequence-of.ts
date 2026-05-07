@@ -14,24 +14,27 @@ import { Parser, updateResult } from '@parsil/parser/parser'
  * @param parsers An array of parsers to apply in sequence.
  * @returns A parser that yields a tuple of each parser's result.
  */
-export function sequenceOf<T extends Parser<any, any>[]>(
+export function sequenceOf<T extends Parser<unknown, unknown>[]>(
   parsers: T
 ): Parser<{ [K in keyof T]: T[K] extends Parser<infer R> ? R : never }> {
+  type ResultTuple = { [K in keyof T]: T[K] extends Parser<infer R> ? R : never }
   return new Parser((state) => {
-    if (state.isError) return state;
+    if (state.isError) return state
 
-    const results: any[] = [];
-    let nextState = state;
+    const results: unknown[] = []
+    let nextState = state
 
     for (const p of parsers) {
-      const out = p.p(nextState);
+      const out = p.p(nextState)
 
-      if (out.isError) return out;
+      if (out.isError) return out
 
-      nextState = out;
-      results.push(out.result);
+      nextState = out
+      results.push(out.result)
     }
 
-    return updateResult(nextState, results as any);
-  });
+    // TypeScript cannot derive `unknown[]` -> `{[K in keyof T]: ...}`
+    // from the loop above; the cast is the contained acknowledgment.
+    return updateResult(nextState, results as ResultTuple)
+  })
 }

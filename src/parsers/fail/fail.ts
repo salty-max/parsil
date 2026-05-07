@@ -1,4 +1,4 @@
-import { Parser, updateError } from '@parsil/parser/parser'
+import { Parser, ParserState, updateError } from '@parsil/parser/parser'
 
 /**
  * `fail` is a parser that always fails with a given error message `error`. It does not consume any input.
@@ -12,8 +12,12 @@ import { Parser, updateError } from '@parsil/parser/parser'
  * @returns A parser that always fails with the error message `error`.
  */
 export function fail<E>(error: E) {
-  return new Parser<any, E>((state) => {
-    if (state.isError) return state
-    return updateError(state, error)
+  // `Parser<never, E>` correctly states that fail never produces a
+  // result. The casts coerce the result-type slot from `any` to `never`
+  // — sound because the state always carries `isError: true`, so
+  // `result` is conventionally never read.
+  return new Parser<never, E>((state): ParserState<never, E> => {
+    if (state.isError) return state as ParserState<never, E>
+    return updateError(state, error) as ParserState<never, E>
   })
 }
