@@ -1,6 +1,6 @@
 import { Parser } from '@parsil/parser/parser'
-import { sequenceOf } from '@parsil/parsers/sequence-of'
 import { bit } from '@parsil/parsers/bit/bit'
+import { sequenceOf } from '@parsil/parsers/sequence-of'
 
 /**
  * `uint` reads the next `n` bits from the input and interprets them as an unsigned integer.

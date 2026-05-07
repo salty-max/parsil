@@ -1,5 +1,5 @@
+import { letters, possibly } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { letters, possibly } from '../../../src'
 
 describe('possibly', () => {
   it('should return the result of the parser if successful', () => {

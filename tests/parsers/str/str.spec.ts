@@ -1,5 +1,5 @@
+import { str } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { str } from '../../../src'
 
 describe('str', () => {
   it('should correctly parse the target string', () => {

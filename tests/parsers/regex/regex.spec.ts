@@ -1,5 +1,5 @@
+import { regex } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { regex } from '../../../src'
 
 describe('regex', () => {
   it('should correctly match the input against the regex pattern', () => {

@@ -1,5 +1,5 @@
+import { bit } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { bit } from '../../../src'
 
 describe('bit', () => {
   it('should correctly parse a bit', () => {

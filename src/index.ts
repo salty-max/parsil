@@ -1,6 +1,8 @@
 import { InputType, InputTypes } from '@parsil/input-types'
 import {
   Err,
+  isError,
+  isOk,
   Ok,
   Parser,
   ParserState,
@@ -8,8 +10,6 @@ import {
   updateError,
   updateResult,
   updateState,
-  isOk,
-  isError,
 } from '@parsil/parser'
 export * from '@parsil/parsers'
 import * as Parsers from '@parsil/parsers'
@@ -22,22 +22,22 @@ import {
   getUtf8Char,
 } from '@parsil/util'
 
-export type { ParserState, ResultType, Err, Ok, InputType }
+export type { Err, InputType, Ok, ParserState, ResultType }
 
 export {
-  encoder,
   decoder,
-  Parser,
-  isOk,
-  isError,
-  updateError,
-  updateState,
-  updateResult,
-  InputTypes,
+  encoder,
   getCharacterLength,
   getNextCharWidth,
   getString,
   getUtf8Char,
+  InputTypes,
+  isError,
+  isOk,
+  Parser,
+  updateError,
+  updateResult,
+  updateState,
 }
 
 export default {

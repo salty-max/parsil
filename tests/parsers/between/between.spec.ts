@@ -1,5 +1,6 @@
+import { between, char, letters } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { between, char, letters } from '../../../src'
+
 import { assertIsOk } from '../../util/test-util'
 
 describe('between', () => {

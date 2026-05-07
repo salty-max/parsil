@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'bun:test'
-import { endOfInput, sequenceOf, str } from '../../../src'
+import { endOfInput, sequenceOf, str } from '@parsil'
+import { describe, expect, it } from 'bun:test'
+
 import { assertIsError, assertIsOk } from '../../util/test-util'
 
 describe('endOfInput', () => {

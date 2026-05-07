@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'bun:test'
-import { anyCharExcept, char } from '../../../src'
+import { anyCharExcept, char } from '@parsil'
+import { describe, expect, it } from 'bun:test'
 
 describe('anyCharExcept', () => {
   it('should match any character except the ones matched by the given parser', () => {
