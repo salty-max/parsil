@@ -1,5 +1,9 @@
 name: Release
 
+# Manual release flow: triggered by pushing a vX.Y.Z tag, never by a
+# push to main. The maintainer runs `bun changeset:version` locally to
+# bump versions + write CHANGELOG.md, commits, tags, and pushes the
+# tag. This workflow consumes the tag and ships the release.
 on:
   push:
     tags:
@@ -19,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
@@ -32,20 +36,37 @@ jobs:
       - name: Build
         run: bun run build
 
-      - name: Extract tag name
-        id: tag_name
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      - name: Extract version + release notes
+        id: notes
+        run: |
+          set -euo pipefail
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG_NAME#v}"
+          echo "tag=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          # Pull the section for this version out of CHANGELOG.md so
+          # the GitHub Release body matches the changelog entry exactly.
+          # The CHANGELOG starts a version with `## X.Y.Z`; we cut from
+          # that line up to (but not including) the next `## ` line.
+          if [ -f CHANGELOG.md ]; then
+            awk -v v="$VERSION" '
+              /^## / {
+                if (found) { exit }
+                if ($2 == v) { found = 1; next }
+              }
+              found { print }
+            ' CHANGELOG.md > release-notes.md
+          else
+            echo "_No CHANGELOG.md found; release notes generated from tag only._" > release-notes.md
+          fi
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag_name.outputs.TAG_NAME }}
-          release_name: Release ${{ steps.tag_name.outputs.TAG_NAME }}
-          body: |
-            Changes in this Release
-            - See [CHANGELOG.md](CHANGELOG.md) for details
+          tag_name: ${{ steps.notes.outputs.tag }}
+          name: Release ${{ steps.notes.outputs.tag }}
+          body_path: release-notes.md
           draft: false
           prerelease: false
 
