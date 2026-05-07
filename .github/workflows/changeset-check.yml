@@ -1,0 +1,48 @@
+name: Changeset Check
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changeset-check:
+    name: Changeset required
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip on non-user-facing PRs
+        id: skip
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if echo "$PR_TITLE" | grep -qiE '^(chore|docs|test|refactor|ci|build|style)(\(|:|!)'; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "PR title indicates a non-user-facing change; skipping changeset check."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.skip.outputs.skip != 'true'
+        with:
+          fetch-depth: 0
+
+      - name: Verify a changeset is added on the branch
+        if: steps.skip.outputs.skip != 'true'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          # List .changeset/*.md files added on this branch since the
+          # PR's base commit. The base sha is fetched by checkout above.
+          ADDED=$(git diff --name-only --diff-filter=A "$BASE_SHA" -- '.changeset/*.md' | grep -v 'README.md' | grep -v 'config.json' || true)
+          if [ -z "$ADDED" ]; then
+            echo "::error::This PR introduces a user-visible change but adds no changeset."
+            echo "::error::Run \`bun changeset\` locally to create one, then commit it with the PR."
+            echo "::error::If this PR truly does not warrant a changelog entry, retitle it with one of: chore(, docs(, test(, refactor(, ci(, build(, style(."
+            exit 1
+          fi
+          echo "Changeset found:"
+          echo "$ADDED"
