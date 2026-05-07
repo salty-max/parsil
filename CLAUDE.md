@@ -103,10 +103,21 @@ Every parser spec must cover at least:
 
 ## Imports
 
-- **Relative inside `src/`** — `../../parser`, `../parsers/many`, etc. No path aliases (the package is small enough that aliases add machinery without payoff).
-- **No deep imports across barrel boundaries** — consumers should only import from `parsil`. Inside `src/`, importing from a sibling parser's barrel (`../many`) is fine; reaching into a sibling's internal file (`../many/many-one`) is not.
+- **Path alias inside `src/`** — every cross-directory import in `src/` uses the `@parsil/*` alias mapped in `tsconfig.json` to `./src/*`. Relative imports (`./`, `../`) are forbidden in `src/` and the custom ESLint rule `custom/no-relative-imports` autofixes violations to the equivalent alias.
+
+  ```ts
+  // Good
+  import { Parser, updateResult } from '@parsil/parser'
+  import { many } from '@parsil/parsers/many'
+
+  // Bad — autofix flips this to '@parsil/parser'
+  import { Parser } from '../../parser'
+  ```
+
+- **Tests are exempt** — `tests/` lives outside `src/` and imports the public surface via a relative path (`'../../../src'`). The alias rule only applies to `src/`.
+- **No deep imports across barrel boundaries** — public consumers only import from `parsil`. Inside `src/`, importing from a sibling's barrel (`@parsil/parsers/many`) is fine; reaching into a sibling's internal file (`@parsil/parsers/many/many-one`) is not — go through the barrel.
 - **No `default` re-exports** — every public symbol is a named export. The default export of `index.ts` is the namespace bundle and exists for ergonomics; don't proliferate defaults.
-- Imports are auto-sorted by ESLint (`simple-import-sort`).
+- Imports are auto-sorted by ESLint (`simple-import-sort`, configured in #5).
 
 ## Testing
 
@@ -286,7 +297,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 5. **Two-layer errors** — primitives produce raw messages, consumers map them
 6. **Test the failure path** — happy + at least one failure per spec
 7. **Mirror layout** — every `src/parsers/<name>/<file>.ts` has a `tests/parsers/<name>/<file>.spec.ts`
-8. **Strict scope-enum** — every commit has a scope from the enum
-9. **JSDoc on exports** — short description + params + returns; `@example` welcome on parsers
-10. **No AI attribution** — never in commits, PRs, or issue comments
-11. **Self-review loop** — run the checklist and fix until LGTM before declaring done
+8. **`@parsil/*` alias in `src/`** — no relative imports in source files; ESLint autofixes violations
+9. **Strict scope-enum** — every commit has a scope from the enum
+10. **JSDoc on exports** — short description + params + returns; `@example` welcome on parsers
+11. **No AI attribution** — never in commits, PRs, or issue comments
+12. **Self-review loop** — run the checklist and fix until LGTM before declaring done
