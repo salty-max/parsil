@@ -3,16 +3,18 @@ import { possibly } from '@parsil/parsers/possibly'
 import { whitespace } from '@parsil/parsers/whitespace/whitespace'
 
 /**
- * `optionalWhitespace` matches optional whitespace.
- * It can return either a string containing whitespace or `null` if no whitespace is found.
+ * `optionalWhitespace` matches optional whitespace, returning the matched
+ * substring or an empty string when whitespace is absent. The result is
+ * always a string — never `null` — so call sites can use it without
+ * narrowing.
  *
  * @example
  * const parser = P.optionalWhitespace;
- * parser.run('  \t\n'); // returns { isError: false, result: '  \t\n', index: 4 }
- * parser.run('abc'); // returns { isError: false, result: null, index: 0 }
+ * parser.run('  \t\n'); // { isError: false, result: '  \t\n', index: 4 }
+ * parser.run('abc');    // { isError: false, result: '',       index: 0 }
  *
- * @returns {Parser<string | null>} A parser that matches optional whitespace.
+ * @returns A parser that matches optional whitespace and never produces null.
  */
-export const optionalWhitespace: Parser<string | null> = possibly(
-  whitespace
-).map((x) => x || '')
+export const optionalWhitespace: Parser<string> = possibly(whitespace).map(
+  (x) => x || ''
+)
