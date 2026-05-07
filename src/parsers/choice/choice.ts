@@ -18,8 +18,15 @@ import { Parser, ParserState, updateError } from '@parsil/parser'
  * @returns A parser that applies the first successful parser in `parsers`.
  */
 export function choice<T, E = string>(parsers: Parser<T, E>[]): Parser<T, E>
-export function choice<T extends readonly Parser<any, any>[]>(parsers: T): Parser<T[number] extends Parser<infer R, any> ? R : never, T[number] extends Parser<any, infer Err> ? Err : never>
-export function choice<T extends Parser<any, any>[]>(
+export function choice<
+  T extends readonly Parser<unknown, unknown>[],
+>(
+  parsers: T
+): Parser<
+  T[number] extends Parser<infer R, unknown> ? R : never,
+  T[number] extends Parser<unknown, infer Err> ? Err : never
+>
+export function choice<T extends Parser<unknown, unknown>[]>(
   parsers: T
 ) {
   if (parsers.length === 0) {
