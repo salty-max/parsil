@@ -12,9 +12,8 @@ import { Parser, updateResult } from '@parsil/parser/parser'
  * parser.run("xyzabc123")  // returns { isError: true, error: "ParseError @ index 0 -> str: Tried to match 'abc', but got 'xyz...'", index: 0 }
  *
  * @param parsers An array of parsers to apply in sequence.
- * @returns {Parser<any>} A parser that applies `parsers` in sequence.
+ * @returns A parser that yields a tuple of each parser's result.
  */
-
 export function sequenceOf<T extends Parser<any, any>[]>(
   parsers: T
 ): Parser<{ [K in keyof T]: T[K] extends Parser<infer R> ? R : never }> {

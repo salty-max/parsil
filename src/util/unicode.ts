@@ -8,6 +8,14 @@ if (!Encoder || !Decoder) {
 export const encoder = new Encoder()
 export const decoder = new Decoder()
 
+/**
+ * Decode a slice of bytes from a `DataView` into a UTF-8 string.
+ *
+ * @param index The byte offset to start from.
+ * @param length The number of bytes to read.
+ * @param dataView The buffer to read from.
+ * @returns The decoded string.
+ */
 export const getString = (
   index: number,
   length: number,
@@ -18,6 +26,14 @@ export const getString = (
   return decoder.decode(bytes)
 }
 
+/**
+ * Return the byte width of the UTF-8 character starting at `index`.
+ * Falls back to 1 when the lead byte doesn't match a known UTF-8 prefix.
+ *
+ * @param index The byte offset of the lead byte.
+ * @param dataView The buffer to inspect.
+ * @returns The character width in bytes (1, 2, 3, or 4).
+ */
 export const getNextCharWidth = (index: number, dataView: DataView) => {
   const byte = dataView.getUint8(index)
   if ((byte & 0x80) === 0x00) return 1 // 0xxxxxxx
@@ -27,6 +43,15 @@ export const getNextCharWidth = (index: number, dataView: DataView) => {
   return 1 // fallback
 }
 
+/**
+ * Decode a single UTF-8 character at `index`, given its byte length.
+ * Use {@link getNextCharWidth} to resolve the length first.
+ *
+ * @param index The byte offset of the character's lead byte.
+ * @param length The character's byte width (1-4).
+ * @param dataView The buffer to read from.
+ * @returns The decoded one-character string.
+ */
 export const getUtf8Char = (
   index: number,
   length: number,
@@ -37,6 +62,13 @@ export const getUtf8Char = (
   return decoder.decode(bytes)
 }
 
+/**
+ * Count the number of code points (visual characters) in a string,
+ * which differs from `String#length` for multi-byte UTF-8 characters.
+ *
+ * @param str The string to measure.
+ * @returns The number of code points.
+ */
 export const getCharacterLength = (str: string): number => {
   let count = 0
   for (const _ of str) count++

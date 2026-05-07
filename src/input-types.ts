@@ -11,6 +11,14 @@ export type TypedArray =
 
 export type InputType = string | ArrayBuffer | DataView | TypedArray
 
+/**
+ * Test whether a value is one of the supported numeric `TypedArray`
+ * shapes. Used by the parser entry point to decide how to wrap binary
+ * input into a `DataView`.
+ *
+ * @param x The candidate value.
+ * @returns `true` if `x` is a numeric typed array; `false` otherwise.
+ */
 export const isTypedArray = (x: unknown) =>
   x instanceof Uint8Array ||
   x instanceof Uint8ClampedArray ||
