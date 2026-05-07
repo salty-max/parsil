@@ -1,4 +1,4 @@
-import { Parser } from '../../parser'
+import { Parser } from '@parsil/parser'
 
 /**
  * `recursive` is a parser combinator that allows creating parsers which reference themselves,

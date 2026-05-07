@@ -1,1 +1,1 @@
-export * from './fail'
+export * from '@parsil/parsers/fail/fail'

@@ -1,4 +1,4 @@
-import { Parser, updateResult } from '../../parser'
+import { Parser, updateResult } from '@parsil/parser'
 
 /**
  * `possibly` is a parser combinator that applies a given parser and returns its result,

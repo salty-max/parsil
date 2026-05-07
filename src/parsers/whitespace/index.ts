@@ -1,2 +1,2 @@
-export * from './whitespace'
-export * from './optional-whitespace'
+export * from '@parsil/parsers/whitespace/whitespace'
+export * from '@parsil/parsers/whitespace/optional-whitespace'

@@ -1,5 +1,5 @@
-import { Parser, updateError, updateState } from '../../parser/parser'
-import { bit } from './bit'
+import { Parser, updateError, updateState } from '@parsil/parser/parser'
+import { bit } from '@parsil/parsers/bit/bit'
 
 /**
  * `zero` is similar to `bit` but expect the parsed bit to be 0.

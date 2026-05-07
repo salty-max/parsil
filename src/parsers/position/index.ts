@@ -1,1 +1,1 @@
-export * from './position'
+export * from '@parsil/parsers/position/position'

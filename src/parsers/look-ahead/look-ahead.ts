@@ -1,4 +1,4 @@
-import { Parser, updateError, updateResult } from '../../parser/parser'
+import { Parser, updateError, updateResult } from '@parsil/parser/parser'
 
 /**
  * `lookAhead` runs the given parser without consuming the input.

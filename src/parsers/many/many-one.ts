@@ -1,5 +1,5 @@
-import { Parser, updateError } from '../../parser'
-import { many } from './many'
+import { Parser, updateError } from '@parsil/parser'
+import { many } from '@parsil/parsers/many/many'
 
 /**
  * `manyOne` is similar to `many`, but it requires the input parser to match the input at least once.

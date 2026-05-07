@@ -1,6 +1,6 @@
-import { Parser } from '../../parser'
-import { possibly } from '../possibly'
-import { whitespace } from './whitespace'
+import { Parser } from '@parsil/parser'
+import { possibly } from '@parsil/parsers/possibly'
+import { whitespace } from '@parsil/parsers/whitespace/whitespace'
 
 /**
  * `optionalWhitespace` matches optional whitespace.

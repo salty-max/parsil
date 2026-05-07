@@ -3,7 +3,7 @@ import {
   updateError,
   updateResult,
   updateState,
-} from '../../parser/parser'
+} from '@parsil/parser/parser'
 
 /**
  * `everythingUntil` is a higher-order parser that collects and returns all the values from the input

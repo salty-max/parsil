@@ -3,8 +3,8 @@ import {
   ParserState,
   updateError,
   updateState,
-} from '../../parser/parser'
-import { encoder, getCharacterLength, getString } from '../../util'
+} from '@parsil/parser/parser'
+import { encoder, getCharacterLength, getString } from '@parsil/util'
 
 /**
  * `str` is a parser that tries to match a given input string `s` against its input.

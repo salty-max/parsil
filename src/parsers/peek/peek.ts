@@ -1,4 +1,4 @@
-import { Parser, updateError, updateState } from '../../parser/parser'
+import { Parser, updateError, updateState } from '@parsil/parser/parser'
 
 /**
  * `peek` peeks (u don't say) at the next byte in the input, without consuming it.

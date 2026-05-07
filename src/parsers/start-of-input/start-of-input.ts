@@ -1,4 +1,4 @@
-import { Parser, updateError } from '../../parser'
+import { Parser, updateError } from '@parsil/parser'
 
 /**
  * `startOfInput` is a parser that expects the parser to be at the start of the input.

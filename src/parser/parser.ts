@@ -1,5 +1,5 @@
-import { InputType, InputTypes, isTypedArray } from '../input-types'
-import { encoder } from '../util'
+import { InputType, InputTypes, isTypedArray } from '@parsil/input-types'
+import { encoder } from '@parsil/util'
 
 /**
  * Defines the internal structure of the parser result
