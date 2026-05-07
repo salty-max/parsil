@@ -1,4 +1,11 @@
-import { Parser, ParserState, updateError, updateState } from '@parsil/parser'
+import {
+  ParseError,
+  parseError,
+  Parser,
+  ParserState,
+  updateError,
+  updateState,
+} from '@parsil/parser'
 import { getNextCharWidth, getUtf8Char } from '@parsil/util'
 
 /**
@@ -15,7 +22,7 @@ import { getNextCharWidth, getUtf8Char } from '@parsil/util'
  * @returns {Parser<string>} A parser that matches any character.
  */
 export const anyChar: Parser<string> = new Parser(
-  (state): ParserState<string, string> => {
+  (state): ParserState<string, ParseError> => {
     if (state.isError) return state
 
     const { index, dataView } = state
@@ -29,7 +36,12 @@ export const anyChar: Parser<string> = new Parser(
 
     return updateError(
       state,
-      `ParseError @ index ${index} -> anyChar: Expected a character, but got unexpected end of input`
+      parseError(
+        'anyChar',
+        index,
+        'Expected a character, but got unexpected end of input',
+        { expected: 'any character' }
+      )
     )
   }
 )

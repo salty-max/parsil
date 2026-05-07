@@ -1,4 +1,4 @@
-import { keyword } from '@parsil'
+import { formatParseError, keyword } from '@parsil'
 import { describe, expect, it } from 'bun:test'
 
 import { assertIsError, assertIsOk } from '../../util/test-util'
@@ -24,37 +24,37 @@ describe('keyword', () => {
     const result = keyword('let').run('letter')
 
     assertIsError(result)
-    expect(result.error).toContain('keyword')
-    expect(result.error).toContain('word boundary')
+    expect(formatParseError(result.error)).toContain('keyword')
+    expect(formatParseError(result.error)).toContain('word boundary')
   })
 
   it('fails when the keyword is not present', () => {
     const result = keyword('let').run('var x = 1')
 
     assertIsError(result)
-    expect(result.error).toContain("Expected 'let'")
-    expect(result.error).toContain('var')
+    expect(formatParseError(result.error)).toContain("Expected 'let'")
+    expect(formatParseError(result.error)).toContain('var')
   })
 
   it('fails on unexpected end of input', () => {
     const result = keyword('let').run('le')
 
     assertIsError(result)
-    expect(result.error).toContain('unexpected end of input')
+    expect(formatParseError(result.error)).toContain('unexpected end of input')
   })
 
   it('treats a digit boundary as not-a-boundary', () => {
     const result = keyword('let').run('let123')
 
     assertIsError(result)
-    expect(result.error).toContain('word boundary')
+    expect(formatParseError(result.error)).toContain('word boundary')
   })
 
   it('treats an underscore boundary as not-a-boundary', () => {
     const result = keyword('let').run('let_x')
 
     assertIsError(result)
-    expect(result.error).toContain('word boundary')
+    expect(formatParseError(result.error)).toContain('word boundary')
   })
 
   it('treats whitespace as a valid boundary', () => {

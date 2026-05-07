@@ -23,7 +23,10 @@ describe('rawString', () => {
 
     expect(parser.run('World')).toStrictEqual({
       isError: true,
-      error: 'ParseError -> rawString: Expected character H, but got W',
+      error: expect.objectContaining({
+        parser: 'rawString',
+        message: 'Expected character H, but got W',
+      }),
       index: 8,
     })
   })

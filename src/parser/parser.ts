@@ -34,13 +34,14 @@ export type ParserState<T, E> = {
  * parser may only forward `state` when it has not produced its own
  * result, i.e. when forwarding an error or position untouched.
  *
- * Defaulting `E` to `string` matches parsil's de facto error
- * convention; consumers using a structured error type override it.
+ * Defaulting `E` to {@link ParseError} matches the structured error
+ * shape every primitive emits. Consumers using a custom error type
+ * override it explicitly via `errorMap`.
  *
  * @template T The type of the result.
- * @template E The type of the error; defaults to `string`.
+ * @template E The type of the error; defaults to `ParseError`.
  */
-export type StateTransformerFn<T, E = string> = (
+export type StateTransformerFn<T, E = ParseError> = (
   state: ParserState<any, any>
 ) => ParserState<T, E>
 
@@ -70,6 +71,82 @@ export type Ok<T> = {
   result: T
   index: number
 }
+
+/**
+ * Structured error produced by parsil's primitive parsers.
+ *
+ * The string format `ParseError @ index N -> <parser>: <message>` that
+ * earlier versions emitted is now produced by {@link formatParseError}
+ * for display. The structured fields let consumers branch on
+ * `error.parser`, read `expected`/`actual` directly, and walk
+ * `error.context` without regex-ing a string.
+ *
+ * Consumers can still attach their own error type via `Parser<T, MyError>`
+ * — `errorMap` transforms `ParseError` into whatever shape they want.
+ */
+export type ParseError = {
+  /** Machine-readable parser identity, e.g. 'char', 'str', 'regex', 'keyword'. */
+  parser: string
+
+  /** Byte offset where the error happened. Mirrors the envelope's index. */
+  index: number
+
+  /** User-readable description (no `ParseError @ index N -> X:` prefix; that's the formatter's job). */
+  message: string
+
+  /** What the parser was looking for, if known. Examples: `'a'`, `'end'`, `/^[0-9]/`. */
+  expected?: string
+
+  /** What was at the position, if known. */
+  actual?: string
+
+  /**
+   * Context labels accumulated by `inContext` wrappers, outer-first.
+   * `['function call', 'argument list', 'expression']` means "while
+   * parsing a function call's argument list's expression".
+   */
+  context?: string[]
+}
+
+/**
+ * Format a {@link ParseError} into the conventional display string
+ * `ParseError [outer > inner] @ index N -> <parser>: <message>`. The
+ * context bracket is omitted when there is no context.
+ *
+ * @param e The structured error to format.
+ * @returns A human-readable string suitable for surface-level display.
+ */
+export const formatParseError = (e: ParseError): string => {
+  const ctx =
+    e.context && e.context.length > 0 ? ` [${e.context.join(' > ')}]` : ''
+  return `ParseError${ctx} @ index ${e.index} -> ${e.parser}: ${e.message}`
+}
+
+/**
+ * Convenience factory for building {@link ParseError} objects inside
+ * primitive parsers. Equivalent to spelling out the object literal but
+ * compresses the common case.
+ *
+ * @param parser The emitting parser's name (`'char'`, `'str'`, ...).
+ * @param index The byte offset where the error happened.
+ * @param message User-readable description.
+ * @param extras Optional `expected`, `actual`, `context` fields.
+ * @param extras.expected What the parser was looking for, when known.
+ * @param extras.actual What was at the position, when known.
+ * @param extras.context Outer-first context labels accumulated by `inContext`.
+ * @returns A `ParseError` object.
+ */
+export const parseError = (
+  parser: string,
+  index: number,
+  message: string,
+  extras: { expected?: string; actual?: string; context?: string[] } = {}
+): ParseError => ({
+  parser,
+  index,
+  message,
+  ...extras,
+})
 
 /**
  * Type guard narrowing a `ResultType<T, E>` to its successful `Ok<T>` shape.
@@ -131,7 +208,7 @@ const createParserState = (
  * @template T The result type
  * @template E The error type
  */
-export class Parser<T, E = string> {
+export class Parser<T, E = ParseError> {
   p: StateTransformerFn<T, E> // The state transformer function for this parser.
 
   /**

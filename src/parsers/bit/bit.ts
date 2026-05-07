@@ -1,4 +1,9 @@
-import { Parser, updateError, updateState } from '@parsil/parser/parser'
+import {
+  parseError,
+  Parser,
+  updateError,
+  updateState,
+} from '@parsil/parser/parser'
 
 /**
  * `bit` reads the next bit from the input.
@@ -19,7 +24,7 @@ export const bit: Parser<number> = new Parser((state) => {
   if (byteOffset >= state.dataView.byteLength) {
     return updateError(
       state,
-      `ParseError @ index ${state.index} -> bit: Unexpected end of input`
+      parseError('bit', state.index, 'Unexpected end of input')
     )
   }
 

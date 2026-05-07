@@ -1,4 +1,4 @@
-import { Parser, updateError } from '@parsil/parser'
+import { parseError, Parser, updateError } from '@parsil/parser'
 import { sepBy } from '@parsil/parsers/sep-by/sep-by'
 
 /**
@@ -28,7 +28,11 @@ export const sepByOne =
       if (out.result.length === 0) {
         return updateError(
           state,
-          `ParseError @ index ${state.index} -> sepByOne: Expected to match at least one separated value`
+          parseError(
+            'sepByOne',
+            state.index,
+            'Expected to match at least one separated value'
+          )
         )
       }
 

@@ -1,19 +1,23 @@
 import { InputTypes } from '@parsil/input-types'
-import { Parser, updateError, updateResult } from '@parsil/parser'
+import {
+  ParseError,
+  parseError,
+  Parser,
+  updateError,
+  updateResult,
+} from '@parsil/parser'
 
 /**
- * `endOfInput` checks if the input stream has been fully consumed.
- * If the input stream has been consumed, it returns a successful parser state with a `null` result.
- * If there are still unparsed bytes in the input, it returns a failed parser state with an error message.
+ * `endOfInput` succeeds (yielding `null`) if the input has been fully
+ * consumed; fails with the next byte's value otherwise.
  *
  * @example
- * const parser = sequenceOf(str("abc"), endOfInput);
- * parser.run("abc");  // returns null
- * parser.run("abcxyz");  // returns `ParseError @ index 3 -> endOfInput: Expected end of input, but got 'x'`
+ * sequenceOf([str('abc'), endOfInput]).run('abc')
+ * // { isError: false, result: ['abc', null], index: 3 }
  *
- * @returns {Parser<null, string>} A parser that asserts the end of the input stream.
+ * @returns A parser that asserts the end of input.
  */
-export const endOfInput = new Parser<null, string>((state) => {
+export const endOfInput = new Parser<null, ParseError>((state) => {
   if (state.isError) return state
   const { dataView, index, inputType } = state
 
@@ -25,7 +29,12 @@ export const endOfInput = new Parser<null, string>((state) => {
 
     return updateError(
       state,
-      `ParseError @ index ${index} -> endOfInput: Expected end of input, but got '${errorByte}'`
+      parseError(
+        'endOfInput',
+        index,
+        `Expected end of input, but got '${errorByte}'`,
+        { actual: errorByte }
+      )
     )
   }
 

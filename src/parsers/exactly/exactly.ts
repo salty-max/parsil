@@ -1,6 +1,4 @@
-import { Parser, updateResult } from "@parsil/parser";
-
-const errorExpectRegex = /ParseError @ index (\d+) ->.+Expected/
+import { parseError, Parser, updateResult } from "@parsil/parser";
 
 /**
  * `exactly` is a parser combinator that applies a given parser exactly `n` times.
@@ -40,5 +38,18 @@ export function exactly<T, N extends number>(n: N): (p: Parser<T>) => Parser<T[]
       }
 
       return updateResult(nextState, results);
-    }).errorMap(({ index, error }) => `ParseError @ index ${index} -> exactly: Expected ${n}${error.replace(errorExpectRegex, "")}`);
+    }).errorMap(({ index, error }) => {
+      // Strip the leading "Expected <parser>, " from the inner message so
+      // exactly's own "Expected n <parser>" prefix isn't duplicated.
+      const innerMsg = (error.message ?? '').replace(
+        /^Expected [^,]+,\s*/,
+        ''
+      );
+      return parseError(
+        'exactly',
+        index,
+        `Expected ${n} ${error.parser ?? 'value'}, ${innerMsg}`,
+        { expected: `${n} of ${error.parser ?? 'value'}` }
+      );
+    });
 }

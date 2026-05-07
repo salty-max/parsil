@@ -1,4 +1,10 @@
-import { Parser, ParserState, updateError } from '@parsil/parser'
+import {
+  ParseError,
+  parseError,
+  Parser,
+  ParserState,
+  updateError,
+} from '@parsil/parser'
 
 /**
  * `choice` is a parser combinator that tries each parser in a given list of parsers, in order,
@@ -38,16 +44,43 @@ export function choice<T extends Parser<unknown, unknown>[]>(
   }
 
   return new Parser((state) => {
-    if (state.isError) return state;
+    if (state.isError) return state
+
+    // Aggregate the `expected` field from each failing branch so the
+    // composite error advertises what choice was looking for, not just
+    // 'Unable to match'.
+    const expectedFromBranches: string[] = []
 
     for (const p of parsers) {
-      const out = p.p(state);
-      if (!out.isError) return out as ParserState<T[number] extends Parser<infer U> ? U : never, string>;
+      const out = p.p(state)
+      if (!out.isError) {
+        return out as ParserState<
+          T[number] extends Parser<infer U> ? U : never,
+          ParseError
+        >
+      }
+      const e = out.error as ParseError | undefined
+      if (e && typeof e === 'object' && 'expected' in e && e.expected) {
+        expectedFromBranches.push(e.expected)
+      } else if (e && typeof e === 'object' && 'parser' in e && e.parser) {
+        expectedFromBranches.push(e.parser)
+      }
     }
+
+    const expected = expectedFromBranches.length
+      ? expectedFromBranches.join(' | ')
+      : undefined
 
     return updateError(
       state,
-      `ParseError @ index ${state.index} -> choice: Unable to match with any parser`
-    );
-  });
+      parseError(
+        'choice',
+        state.index,
+        expected
+          ? `Expected one of: ${expected}`
+          : 'Unable to match with any parser',
+        expected ? { expected } : {}
+      )
+    )
+  })
 }

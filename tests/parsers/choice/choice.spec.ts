@@ -17,8 +17,10 @@ describe('choice', () => {
     const result = parser.run('@')
 
     assertIsError(result)
-    expect(result.error).toBe(
-      `ParseError @ index 0 -> choice: Unable to match with any parser`
-    )
+    // choice now aggregates `expected` from each failing branch.
+    expect(result.error.parser).toBe('choice')
+    expect(result.error.index).toBe(0)
+    expect(result.error.message).toContain('Expected one of:')
+    expect(result.error.expected).toBe('[0-9]+ | [A-Za-z]+')
   })
 })

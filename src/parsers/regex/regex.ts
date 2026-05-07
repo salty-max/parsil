@@ -1,4 +1,11 @@
-import { Parser, ParserState, updateError, updateState } from '@parsil/parser'
+import {
+  ParseError,
+  parseError,
+  Parser,
+  ParserState,
+  updateError,
+  updateState,
+} from '@parsil/parser'
 import { encoder, getString } from '@parsil/util'
 
 /**
@@ -33,31 +40,41 @@ export const regex = (re: RegExp): Parser<string> => {
     throw new Error(`regex parsers must contain '^' start assertion`)
   }
 
-  return new Parser<string>((state): ParserState<string, string> => {
+  const reStr = re.toString()
+
+  return new Parser<string>((state): ParserState<string, ParseError> => {
     if (state.isError) return state
     const { dataView, index } = state
     const rest = getString(index, dataView.byteLength - index, dataView)
 
     if (rest.length >= 1) {
       const match = rest.match(re)
-      return match
-        ? updateState(
-            state,
-            index + encoder.encode(match[0]).byteLength,
-            match[0]
-          )
-        : updateError(
-            state,
-            `ParseError @ index ${index} -> regex: Tried to match ${re}, got '${rest.slice(
-              0,
-              5
-            )}...'`
-          )
+      if (match) {
+        return updateState(
+          state,
+          index + encoder.encode(match[0]).byteLength,
+          match[0]
+        )
+      }
+      return updateError(
+        state,
+        parseError(
+          'regex',
+          index,
+          `Tried to match ${reStr}, got '${rest.slice(0, 5)}...'`,
+          { expected: reStr, actual: rest.slice(0, 5) }
+        )
+      )
     }
 
     return updateError(
       state,
-      `ParseError @ index ${index} -> regex: Tried to match ${re}, but got unexpected end of input`
+      parseError(
+        'regex',
+        index,
+        `Tried to match ${reStr}, but got unexpected end of input`,
+        { expected: reStr }
+      )
     )
   })
 }

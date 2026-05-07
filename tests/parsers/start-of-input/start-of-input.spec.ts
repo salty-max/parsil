@@ -25,7 +25,11 @@ describe('startOfInput parser', () => {
 
     expect(result).toStrictEqual({
       isError: true,
-      error: `ParseError @ index 3 -> startOfInput: Expected start of input`,
+      error: expect.objectContaining({
+        parser: 'startOfInput',
+        index: 3,
+        message: 'Expected start of input',
+      }),
       index: 3,
     })
   })

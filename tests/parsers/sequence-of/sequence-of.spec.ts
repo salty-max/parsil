@@ -1,4 +1,4 @@
-import { sequenceOf, str } from '@parsil'
+import { formatParseError, sequenceOf, str } from '@parsil'
 import { describe, expect, it } from 'bun:test'
 
 import { assertIsError, assertIsOk } from '../../util/test-util'
@@ -17,6 +17,6 @@ describe('sequenceOf', () => {
     const failResult = parser.run('Hello, World')
 
     assertIsError(failResult)
-    expect(failResult.error).toBeDefined()
+    expect(formatParseError(failResult.error)).toBeDefined()
   })
 })

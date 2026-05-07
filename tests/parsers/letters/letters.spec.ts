@@ -18,7 +18,11 @@ describe('letters', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error: 'ParseError @ index 0 -> letters: Expected letters',
+      error: expect.objectContaining({
+        parser: 'letters',
+        index: 0,
+        message: 'Expected letters',
+      }),
     })
   })
 
@@ -28,7 +32,11 @@ describe('letters', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error: 'ParseError @ index 0 -> letters: Expected letters',
+      error: expect.objectContaining({
+        parser: 'letters',
+        index: 0,
+        message: 'Expected letters',
+      }),
     })
   })
 })

@@ -23,7 +23,11 @@ describe('endOfInput', () => {
     assertIsError(result)
     expect(result).toStrictEqual({
       isError: true,
-      error: `ParseError @ index 3 -> endOfInput: Expected end of input, but got 'x'`,
+      error: expect.objectContaining({
+        parser: 'endOfInput',
+        index: 3,
+        message: `Expected end of input, but got 'x'`,
+      }),
       index: 3,
     })
   })
@@ -35,7 +39,11 @@ describe('endOfInput', () => {
     assertIsError(result)
     expect(result).toStrictEqual({
       isError: true,
-      error: `ParseError @ index 3 -> endOfInput: Expected end of input, but got '0x78'`,
+      error: expect.objectContaining({
+        parser: 'endOfInput',
+        index: 3,
+        message: `Expected end of input, but got '0x78'`,
+      }),
       index: 3,
     })
   })

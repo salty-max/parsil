@@ -20,8 +20,11 @@ describe('char', () => {
     expect(res).toEqual({
       index: 0,
       isError: true,
-      error:
-        'ParseError @ index 0 -> anyChar: Expected a character, but got unexpected end of input',
+      error: expect.objectContaining({
+        parser: 'anyChar',
+        index: 0,
+        message: 'Expected a character, but got unexpected end of input',
+      }),
     })
   })
 })
