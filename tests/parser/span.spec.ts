@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'bun:test'
-import { str } from '../../src'
+import { str } from '@parsil'
+import { describe, expect, it } from 'bun:test'
+
 import { assertIsOk } from '../util/test-util'
 
 describe('Parser ▸ withSpan / spanMap', () => {

@@ -1,5 +1,5 @@
+import { char, coroutine, digits, fail, letters, str } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { char, coroutine, digits, fail, letters, str } from '../../../src'
 
 describe('coroutine', () => {
   it('should execute the coroutine and return the final result', () => {

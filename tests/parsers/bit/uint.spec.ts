@@ -1,5 +1,5 @@
+import { uint } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { uint } from '../../../src'
 
 describe('uint', () => {
   it('should parse unsigned integers correctly', () => {

@@ -1,5 +1,5 @@
+import { letter } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { letter } from '../../../src'
 
 describe('letter', () => {
   it('should parse a single letter', () => {

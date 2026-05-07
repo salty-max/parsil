@@ -1,5 +1,5 @@
+import { Err, Ok, ResultType } from '@parsil/parser'
 import { expect } from 'bun:test'
-import { Err, Ok, ResultType } from '../../src/parser'
 
 export function assertIsOk<T>(
   result: ResultType<T, string>

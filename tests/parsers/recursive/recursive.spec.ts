@@ -1,5 +1,6 @@
+import { between, char, choice, digits, recursive, sepBy } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { between, char, choice, digits, recursive, sepBy } from '../../../src'
+
 import { assertIsError, assertIsOk } from '../../util/test-util'
 
 describe('recursive', () => {

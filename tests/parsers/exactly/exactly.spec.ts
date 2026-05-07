@@ -1,5 +1,5 @@
+import { digit, exactly, letter } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { digit, exactly, letter } from '../../../src'
 
 describe('exactly', () => {
   it('should apply the parser exactly n times and collect the results in an array', () => {

@@ -29,6 +29,10 @@ function relativeToAlias(fromFile, specifier) {
   // Strip extensions so imports stay module-style; tsc + bun resolve the file.
   const withoutExt = rel.replace(/\.(ts|tsx|js|jsx|mjs|cjs)$/, '')
 
+  // Targeting the src root (the dir or its index file) maps to the
+  // bare `@parsil` alias — the public package entry as a consumer sees it.
+  if (withoutExt === '' || withoutExt === 'index') return '@parsil'
+
   // Posix separators for cross-platform consistency.
   return `@parsil/${withoutExt.split(path.sep).join('/')}`
 }
@@ -56,16 +60,18 @@ const rule = {
       const filename = context.filename ?? context.getFilename()
       const alias = relativeToAlias(filename, source)
 
+      // Imports that resolve outside `src/` (e.g. test-internal helpers
+      // like `'../util/test-util'`) cannot be aliased and are left alone.
+      if (alias === null) return
+
       context.report({
         node: node.source,
         messageId: 'forbidden',
-        data: { suggestion: alias ? ` (e.g. "${alias}")` : '' },
-        fix: alias
-          ? (fixer) => {
-              const quote = node.source.raw[0]
-              return fixer.replaceText(node.source, `${quote}${alias}${quote}`)
-            }
-          : null,
+        data: { suggestion: ` (e.g. "${alias}")` },
+        fix: (fixer) => {
+          const quote = node.source.raw[0]
+          return fixer.replaceText(node.source, `${quote}${alias}${quote}`)
+        },
       })
     }
 

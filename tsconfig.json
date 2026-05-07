@@ -13,6 +13,7 @@
     "esModuleInterop": true,
     "types": ["bun-types"],
     "paths": {
+      "@parsil": ["./src/index.ts"],
       "@parsil/*": ["./src/*"]
     }
   },

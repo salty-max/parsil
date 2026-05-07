@@ -1,5 +1,5 @@
+import { letters } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { letters } from '../../../src'
 
 describe('letters', () => {
   it('should correctly parse letters from the string', () => {

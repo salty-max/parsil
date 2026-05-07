@@ -1,5 +1,6 @@
+import { many, str } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { many, str } from '../../../src'
+
 import { assertIsOk } from '../../util/test-util'
 
 describe('many', () => {

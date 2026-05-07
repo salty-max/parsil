@@ -1,5 +1,5 @@
+import { optionalWhitespace } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { optionalWhitespace } from '../../../src'
 
 describe('optionalWhitespace', () => {
   it('should match whitespace characters', () => {

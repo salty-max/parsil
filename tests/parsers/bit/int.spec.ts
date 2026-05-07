@@ -1,5 +1,5 @@
+import { int } from '@parsil'
 import { describe, expect, it } from 'bun:test'
-import { int } from '../../../src'
 
 describe('int', () => {
   it('should parse positive integers correctly', () => {
