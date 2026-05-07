@@ -72,6 +72,12 @@ A parser is a pure function `state -> state`. Never close over module-level muta
 
 Every public parser is `Parser<T, E>` for a specific `T`. Avoid `Parser<any>` in exports — it leaks at every call site. Use TS variadic tuple types where possible (see `sequenceOf`'s tuple inference for the pattern).
 
+`Parser<T, E>` defaults `E = string`, parsil's de facto error convention. Consumers using a structured error (e.g. `AsmError` in Gero) override it explicitly. Heterogeneous parser arrays (`choice`, `sequenceOf`) are constrained as `Parser<unknown, unknown>[]` — variance-equivalent to `Parser<any, any>[]` but more honest. `fail<E>(error)` returns `Parser<never, E>` because it can never produce a result.
+
+**The one documented `any` left in the codebase** is on `StateTransformerFn`'s input state: `(state: ParserState<any, any>) => ParserState<T, E>`. Tightening it to `unknown` cascades into ~25 cast sites at every parser's `if (state.isError) return state` early-exit. The unsafety is contained — a parser may only forward `state` when it has not produced its own result. The trade-off is documented inline in `src/parser/parser.ts`. Don't add new `any` outside this boundary; if you find one, fix it instead of mirroring it.
+
+**The one documented `as` cast** is in `src/parsers/sequence-of/sequence-of.ts`: an accumulator `unknown[]` cast to the tuple-mapped result type `{ [K in keyof T]: ... }`. TypeScript can't derive that mapping from a heterogeneous loop. The cast is contained, sound, and commented. New combinators that need similar tuple-mapped output should follow the same `unknown[]` + final cast pattern rather than introducing `any`.
+
 ### Use `coroutine` for readability
 
 When a parser branches on intermediate results (e.g. peek a character, then dispatch to one of several sub-parsers), prefer `coroutine` over nested `chain` calls. The coroutine reads top-to-bottom; chains nest sideways. See `tests/parsers/coroutine/coroutine.spec.ts` for the canonical pattern.
@@ -232,24 +238,51 @@ Rules:
 
 ## Self-Review Before Declaring Done
 
-When you think the work on an issue is finished, **don't declare done immediately**. Run a self-review pass, fix what you find, and loop until the review is clean. The pass is short but mandatory:
+This section is **non-negotiable**. When you think the work on an issue is finished, **don't declare done immediately**. Run a self-review pass, fix what you find, and loop until the review is clean.
 
-### Checklist
+> **The known failure mode** is treating green CI as proof of done. Lint clean + typecheck clean + tests green is **necessary but not sufficient**. Issues list explicit acceptance criteria that go beyond CI: docs updates, type tests, downstream consumer impact, `.d.ts` diff inspection, changesets. Skipping these is the failure to guard against.
 
-1. **Acceptance criteria from the issue** — re-read the issue body. Has every bullet been addressed? If a criterion is intentionally deferred, note it in the PR description with a reason.
-2. **Tests** — do they cover happy path, at least one failure, and the edge cases listed in the issue (empty input, EOI, etc.)? Run `bun test` locally and confirm green.
-3. **Public API consistency** — does the new export follow naming conventions of neighbors? Same JSDoc shape? Re-exported from the right barrel?
-4. **Lint + typecheck** — `bun run lint` and `bun run typecheck` clean. `--max-warnings 0` is enforced; no exceptions.
-5. **No leftover scaffolding** — no `console.log`, no `// TODO` without an issue link, no commented-out code, no unused imports.
-6. **Commit hygiene** — every commit has a valid scoped header; no fixup commits left unsquashed; no AI attribution anywhere.
-7. **Diff scope** — the PR touches what the issue says it should and nothing else. Drive-by refactors go in their own PR.
-8. **Docs** — README's API section and CLAUDE.md updated if the change affects consumers (new combinator → README; new convention → CLAUDE.md).
+### Step 1 (do this first): re-open the issue body
+
+Re-read **every** acceptance criterion line by line, in order. For each one, answer one of:
+
+- ✅ Done — note where in the diff it's addressed.
+- ⏭️ Deferred — note explicitly in the PR description, with a reason and a follow-up issue if appropriate.
+- ❌ Missed — fix it before proceeding.
+
+Don't paraphrase the criteria. Don't merge them in your head. Walk the list as the issue author wrote it.
+
+### Step 2: technical gates (necessary)
+
+- `bun run lint` clean with `--max-warnings 0`. No exceptions.
+- `bun run typecheck` clean.
+- `bun test` green — covers happy path, at least one failure, and the edge cases the issue lists (empty input, EOI, etc.) for new combinators.
+- `bun run knip:check` clean.
+- `bun run build` produces a clean ESM bundle and `.d.ts`.
+
+### Step 3: explicit acceptance checks (don't skip)
+
+- **Public API impact** — `.d.ts` diff against `main` inspected if the change touches public types. No `any` leaks; tightened generics documented.
+- **Downstream consumers** — if parsil's API contract changes, check known consumers (Gero asm parser at `/Users/max/dev/gero_2.0/packages/asm/src/parser/`) and call out adjustments in the PR description.
+- **Docs** — README's API section updated for new public combinators. CLAUDE.md updated for new conventions.
+- **Type tests** — when the change tightens generic constraints, add a compile-time assertion under `tests/parser/types.spec.ts` so a regression fails CI.
+- **Changeset** — added at the appropriate level (patch/minor/major) for `feat`/`fix`/`perf`/breaking PRs. Skipped only for `chore`/`docs`/`test`/`refactor` (internal-only)/`ci`/`build`/`style`. When in doubt, add one.
+
+### Step 4: hygiene
+
+- No leftover `console.log`, `debugger`, commented-out code, unused imports, or `// TODO` without a linked issue.
+- Every commit has a valid scoped Conventional-Commit header.
+- No `Co-Authored-By: Claude` trailers, no AI attribution anywhere.
+- Diff scope matches what the issue says it should — drive-by refactors go in their own PR.
+- Fixup commits are either auto-squashed locally or the PR is set up for squash-merge.
 
 ### Loop
 
-If the pass finds issues, fix them and run the pass again — including re-running tests, lint, and typecheck. Keep looping until the review surfaces nothing. Only then mark the work as done and request review.
+If any step finds an issue, fix it and run **all four steps again** — not just the failing one. Tests can pass on Wednesday and break on Thursday because of an autofix change you didn't notice. Re-run end to end.
 
-A pass that finds zero issues on the first try is suspicious — re-read the issue body once more before trusting it.
+Stop only when all four steps surface zero items.
+
+A first-try clean pass is suspicious — re-read the issue body once more before trusting it.
 
 ## Forbidden Patterns
 
