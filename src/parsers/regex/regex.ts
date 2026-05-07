@@ -1,5 +1,5 @@
-import { Parser, ParserState, updateError, updateState } from '../../parser'
-import { encoder, getString } from '../../util'
+import { Parser, ParserState, updateError, updateState } from '@parsil/parser'
+import { encoder, getString } from '@parsil/util'
 
 /**
  * `regex` is a parser that tries to match a given Regular Expression `re` against its input.

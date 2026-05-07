@@ -1,4 +1,4 @@
-import { Parser, ParserState, updateState } from '../../parser/parser'
+import { Parser, ParserState, updateState } from '@parsil/parser/parser'
 
 /**
  * `index` produces the current byte offset in the input without consuming any input.

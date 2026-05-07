@@ -1,5 +1,5 @@
-import { Parser, ParserState, updateError, updateState } from '../../parser'
-import { getCharacterLength, getNextCharWidth, getUtf8Char } from '../../util'
+import { Parser, ParserState, updateError, updateState } from '@parsil/parser'
+import { getCharacterLength, getNextCharWidth, getUtf8Char } from '@parsil/util'
 
 /**
  * `char` is a parser that matches a given input character `c` at the start of its input.

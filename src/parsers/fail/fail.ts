@@ -1,4 +1,4 @@
-import { Parser, updateError } from '../../parser/parser'
+import { Parser, updateError } from '@parsil/parser/parser'
 
 /**
  * `fail` is a parser that always fails with a given error message `error`. It does not consume any input.

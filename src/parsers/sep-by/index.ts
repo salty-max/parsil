@@ -1,2 +1,2 @@
-export * from './sep-by'
-export * from './sep-by-one'
+export * from '@parsil/parsers/sep-by/sep-by'
+export * from '@parsil/parsers/sep-by/sep-by-one'

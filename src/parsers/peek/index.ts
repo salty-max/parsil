@@ -1,1 +1,1 @@
-export * from './peek'
+export * from '@parsil/parsers/peek/peek'

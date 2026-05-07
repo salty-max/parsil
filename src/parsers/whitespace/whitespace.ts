@@ -1,5 +1,5 @@
-import { Parser } from '../../parser'
-import { regex } from '../regex'
+import { Parser } from '@parsil/parser'
+import { regex } from '@parsil/parsers/regex'
 
 const wsRegex = /^\s+/
 

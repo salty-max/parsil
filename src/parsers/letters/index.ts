@@ -1,2 +1,2 @@
-export * from './letter'
-export * from './letters'
+export * from '@parsil/parsers/letters/letter'
+export * from '@parsil/parsers/letters/letters'

@@ -1,4 +1,4 @@
-import { Parser, updateResult } from '../../parser/parser'
+import { Parser, updateResult } from '@parsil/parser/parser'
 
 /**
  * `succeed` is a parser combinator that always succeeds and produces a constant value.

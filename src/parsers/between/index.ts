@@ -1,1 +1,1 @@
-export * from './between'
+export * from '@parsil/parsers/between/between'

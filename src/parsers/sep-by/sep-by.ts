@@ -1,4 +1,4 @@
-import { Parser, ParserState, updateResult } from '../../parser'
+import { Parser, ParserState, updateResult } from '@parsil/parser'
 
 /**
  * `sepBy` is a parser that matches zero or more occurrences of a value, separated by a given separator.

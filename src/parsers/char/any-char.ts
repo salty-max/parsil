@@ -1,5 +1,5 @@
-import { Parser, ParserState, updateError, updateState } from '../../parser'
-import { getNextCharWidth, getUtf8Char } from '../../util'
+import { Parser, ParserState, updateError, updateState } from '@parsil/parser'
+import { getNextCharWidth, getUtf8Char } from '@parsil/util'
 
 /**
  * `anyChar` is a parser that matches any single character at the start of its input.

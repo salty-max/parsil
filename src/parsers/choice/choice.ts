@@ -1,4 +1,4 @@
-import { Parser, ParserState, updateError } from '../../parser'
+import { Parser, ParserState, updateError } from '@parsil/parser'
 
 /**
  * `choice` is a parser combinator that tries each parser in a given list of parsers, in order,

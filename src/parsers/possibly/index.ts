@@ -1,1 +1,1 @@
-export * from './possibly'
+export * from '@parsil/parsers/possibly/possibly'

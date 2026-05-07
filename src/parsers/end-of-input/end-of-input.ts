@@ -1,5 +1,5 @@
-import { InputTypes } from '../../input-types'
-import { Parser, updateError, updateResult } from '../../parser/'
+import { InputTypes } from '@parsil/input-types'
+import { Parser, updateError, updateResult } from '@parsil/parser'
 
 /**
  * `endOfInput` checks if the input stream has been fully consumed.

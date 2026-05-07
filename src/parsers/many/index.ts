@@ -1,2 +1,2 @@
-export * from './many'
-export * from './many-one'
+export * from '@parsil/parsers/many/many'
+export * from '@parsil/parsers/many/many-one'

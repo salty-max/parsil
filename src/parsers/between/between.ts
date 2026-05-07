@@ -1,5 +1,5 @@
-import { Parser } from '../../parser/parser'
-import { sequenceOf } from '../sequence-of'
+import { Parser } from '@parsil/parser/parser'
+import { sequenceOf } from '@parsil/parsers/sequence-of'
 
 /**
  * `between` is a parser combinator that matches the content between two other parsers, `leftParser` and `rightParser`.

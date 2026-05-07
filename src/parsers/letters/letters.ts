@@ -1,5 +1,5 @@
-import { Parser } from '../../parser/parser'
-import { regex } from '../regex'
+import { Parser } from '@parsil/parser/parser'
+import { regex } from '@parsil/parsers/regex'
 
 const lettersRegex = /^[A-Za-z]+/
 
