@@ -316,7 +316,11 @@ Don't paraphrase the criteria. Don't merge them in your head. Walk the list as t
 
 - **Public API impact** — `.d.ts` diff against `main` inspected if the change touches public types. No `any` leaks; tightened generics documented.
 - **Downstream consumers** — if parsil's API contract changes, check known consumers (Gero asm parser at `/Users/max/dev/gero_2.0/packages/asm/src/parser/`) and call out adjustments in the PR description.
-- **Docs** — README's API section updated for new public combinators. CLAUDE.md updated for new conventions.
+- **Docs — every doc-affecting change must propagate everywhere it appears**. Concretely:
+  - New public export (parser, combinator, helper, type) → README's **API → Combinators / Core primitives / Methods** section MUST list it. If the README quotes a list of exports, your PR adds yours to that list.
+  - New convention or workflow (commit policy, branch policy, release flow) → CLAUDE.md.
+  - JSDoc on the export itself, of course.
+  - The doc check is **not** "does my code work"; it's "would a reader of the README know my export exists". If no, README is stale and the PR is incomplete.
 - **Type tests** — when the change tightens generic constraints, add a compile-time assertion under `tests/parser/types.spec.ts` so a regression fails CI.
 - **Changeset** — added at the appropriate level (patch/minor/major) for `feat`/`fix`/`perf`/breaking PRs. Skipped only for `chore`/`docs`/`test`/`refactor` (internal-only)/`ci`/`build`/`style`. When in doubt, add one.
 
