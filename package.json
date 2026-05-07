@@ -33,6 +33,10 @@
     "format": "bunx prettier . -w",
     "knip:check": "bunx knip",
     "commitlint": "bunx commitlint --edit",
+    "changeset": "bunx changeset",
+    "changeset:status": "bunx changeset status --since=origin/main",
+    "changeset:version": "bunx changeset version",
+    "changeset:tag": "bunx changeset tag",
     "prepare": "husky"
   },
   "devDependencies": {

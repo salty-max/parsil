@@ -22,9 +22,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PARSERS_ROOT = path.resolve(__dirname, 'src/parsers')
 
 const parserScopes = readdirSync(PARSERS_ROOT)
-  .filter((entry) =>
-    statSync(path.join(PARSERS_ROOT, entry)).isDirectory()
-  )
+  .filter((entry) => statSync(path.join(PARSERS_ROOT, entry)).isDirectory())
   .map((dir) => `parsers/${dir}`)
   .sort()
 
