@@ -236,6 +236,58 @@ Rules:
 
 `no-console` is enforced (warn level). `console.warn` and `console.error` are allowed for genuine library-level warnings. `console.log` and `debugger` are not — remove them before committing. CI fails on `--max-warnings 0` so a stray `console.log` blocks the merge.
 
+## Changesets
+
+Every PR that introduces a user-visible change lands with a changeset file under `.changeset/`. The eventual CHANGELOG and version bump are derived from the accumulated changesets at release time, so dropping one means the change disappears from the release notes.
+
+### When to add a changeset
+
+**Add one** for: `feat`, `fix`, `perf`, breaking refactor, or anything that affects the published API or runtime behavior consumers will notice.
+
+**Skip** for: `chore`, `docs`, `test`, `refactor` (internal-only), `ci`, `build`, `style`. End-users don't care about these in a CHANGELOG.
+
+When in doubt, **add one**. They're cheap and easy to delete.
+
+### How to add one
+
+```bash
+bun changeset           # interactive: pick patch/minor/major, write summary
+# Edits a file at .changeset/<random-name>.md — commit it with the rest of the PR
+```
+
+The summary you write becomes the bullet in the next CHANGELOG entry, so write it for end users, not for reviewers.
+
+### Enforcement
+
+`changeset-check.yml` runs on every PR. It skips PRs whose title starts with `chore(`, `docs(`, `test(`, `refactor(`, `ci(`, `build(`, or `style(`. For all other PRs, it requires a `.changeset/*.md` file added on the branch and fails with a clear message otherwise.
+
+## Releasing
+
+Releases are **manual** by design. Multiple merged PRs accumulate changesets on `main`; the maintainer cuts a release when several are worth a coherent semver bump. Pushing to `main` runs CI but **never** publishes — only pushing a `vX.Y.Z` tag triggers `release.yml`.
+
+### Runbook
+
+```bash
+# Locally on main, after the wanted PRs are merged
+git checkout main && git pull
+
+# Apply changesets: bumps package.json version, writes CHANGELOG.md,
+# deletes the consumed changeset files
+bun changeset:version
+
+# Review the diff (version + CHANGELOG) and commit
+git diff
+git add . && git commit -m "chore(meta): release vX.Y.Z"
+
+# Tag the commit and push — release.yml fires on the tag
+git tag vX.Y.Z
+git push origin main --tags
+```
+
+The flow is intentionally a few steps so the maintainer can review the bumped version and CHANGELOG before the release goes live.
+
+If `changeset:version` produces a version you don't want, edit `package.json` and `CHANGELOG.md` by hand before tagging — no shame in it. The downstream `release.yml` doesn't care how the tag arrived, only that the tag commit's working tree matches the version it advertises.
+
 ## Self-Review Before Declaring Done
 
 This section is **non-negotiable**. When you think the work on an issue is finished, **don't declare done immediately**. Run a self-review pass, fix what you find, and loop until the review is clean.
