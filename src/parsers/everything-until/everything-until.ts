@@ -42,10 +42,8 @@ export const everythingUntil = <T>(parser: Parser<T>): Parser<number[]> =>
         }
 
         const val = dataView.getUint8(index)
-        if (val) {
-          results.push(val)
-          nextState = updateState(nextState, index + 1, val)
-        }
+        results.push(val)
+        nextState = updateState(nextState, index + 1, val)
       } else {
         break
       }
