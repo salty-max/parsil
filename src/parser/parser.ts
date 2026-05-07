@@ -59,10 +59,22 @@ export type Ok<T> = {
   index: number
 }
 
+/**
+ * Type guard narrowing a `ResultType<T, E>` to its successful `Ok<T>` shape.
+ *
+ * @param result The result envelope to inspect.
+ * @returns `true` when the parse succeeded.
+ */
 export function isOk<T, E>(result: ResultType<T, E>): result is Ok<T> {
   return !result.isError
 }
 
+/**
+ * Type guard narrowing a `ResultType<T, E>` to its failure `Err<E>` shape.
+ *
+ * @param result The result envelope to inspect.
+ * @returns `true` when the parse failed.
+ */
 export function isError<T, E>(result: ResultType<T, E>): result is Err<E> {
   return result.isError
 }
@@ -258,8 +270,10 @@ export class Parser<T, E = string> {
   }
 
   /**
-   * Wraps this parser and returns a parser that yields the original value together with
-   * the start/end byte offsets it consumed. On failure, bubbles the original error.
+   * Wrap this parser so its successful result carries the start/end byte
+   * offsets it consumed. On failure, the original error is bubbled.
+   *
+   * @returns A parser yielding `{ value, start, end }` on success.
    */
   withSpan(): Parser<{ value: T; start: number; end: number }, E> {
     return new Parser(
@@ -274,8 +288,12 @@ export class Parser<T, E = string> {
   }
 
   /**
-   * Maps the result of this parser into a caller-provided node shape with an attached span
-   * indicating the start/end byte offsets consumed by this parser.
+   * Map the result of this parser into a caller-provided node shape,
+   * passing the start/end byte offsets consumed alongside the value.
+   *
+   * @param build Function receiving the value and its `{ start, end }`
+   *   span; returns the AST node (or any shape) the caller wants.
+   * @returns A parser yielding the caller-built node on success.
    */
   spanMap<U>(
     build: (value: T, loc: { start: number; end: number }) => U

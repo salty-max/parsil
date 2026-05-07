@@ -77,14 +77,29 @@ const srcRules = {
   ...sharedRules,
   'custom/no-relative-imports': 'error',
 
-  // JSDoc — validate what's there, don't require new docs (a separate
-  // doc PR can add JSDoc to undocumented helpers later).
-  'jsdoc/require-jsdoc': 'off',
-  'jsdoc/require-description': 'off',
-  'jsdoc/require-param': 'off',
-  'jsdoc/require-param-description': 'off',
-  'jsdoc/require-returns': 'off',
-  'jsdoc/require-returns-description': 'off',
+  // JSDoc — exported declarations require docs per CLAUDE.md, validation
+  // of existing JSDoc against the actual signature on top.
+  'jsdoc/require-jsdoc': [
+    'error',
+    {
+      publicOnly: true,
+      require: {
+        FunctionDeclaration: true,
+        ArrowFunctionExpression: true,
+        ClassDeclaration: true,
+        MethodDefinition: true,
+      },
+      contexts: [
+        'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[init.type=/(Arrow)?FunctionExpression/]',
+        'ExportNamedDeclaration > FunctionDeclaration',
+      ],
+    },
+  ],
+  'jsdoc/require-description': 'error',
+  'jsdoc/require-param': 'error',
+  'jsdoc/require-param-description': 'error',
+  'jsdoc/require-returns': 'error',
+  'jsdoc/require-returns-description': 'error',
   'jsdoc/check-param-names': 'error',
   'jsdoc/check-tag-names': 'error', // catches '@return' instead of '@returns'
   'jsdoc/check-types': 'error',
