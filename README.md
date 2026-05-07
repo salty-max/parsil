@@ -204,18 +204,23 @@ isError<T, E>(result: ResultType<T, E>): result is Err<E>
 
 ### Char primitives
 
-| Parser             | Type                                  | Description                                                                            |
-| ------------------ | ------------------------------------- | -------------------------------------------------------------------------------------- |
-| `char(c)`          | `(c: string) => Parser<string>`       | Match a single UTF-8 char exactly.                                                     |
-| `anyChar`          | `Parser<string>`                      | Match any single UTF-8 char. Fails at end of input.                                    |
-| `anyCharExcept(p)` | `<T>(p: Parser<T>) => Parser<string>` | Match any char that does **not** start a match for `p`.                                |
-| `str(s)`           | `(s: string) => Parser<string>`       | Match an exact string.                                                                 |
-| `regex(re)`        | `(re: RegExp) => Parser<string>`      | Match against a regex anchored at the current position. The regex must start with `^`. |
+| Parser                  | Type                                                               | Description                                                                            |
+| ----------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| `char(c)`               | `(c: string) => Parser<string>`                                    | Match a single UTF-8 char exactly.                                                     |
+| `anyChar`               | `Parser<string>`                                                   | Match any single UTF-8 char. Fails at end of input.                                    |
+| `anyCharExcept(p)`      | `<T>(p: Parser<T>) => Parser<string>`                              | Match any char that does **not** start a match for `p`.                                |
+| `str(s)`                | `(s: string) => Parser<string>`                                    | Match an exact string.                                                                 |
+| `regex(re)`             | `(re: RegExp) => Parser<string>`                                   | Match against a regex anchored at the current position. The regex must start with `^`. |
+| `satisfy(pred, label?)` | `(pred: (c: string) => boolean, label?: string) => Parser<string>` | Match a single char satisfying a predicate. Foundation for `oneOf`/`noneOf`/etc.       |
+| `oneOf(chars)`          | `(chars: string) => Parser<string>`                                | Match a single char that is one of `chars`.                                            |
+| `noneOf(chars)`         | `(chars: string) => Parser<string>`                                | Match a single char that is **not** one of `chars`.                                    |
 
 ```ts
 char('@').run('@home') // result: '@', index: 1
 str('hello').run('hello world') // result: 'hello', index: 5
 regex(/^[a-z]+/).run('abc123') // result: 'abc', index: 3
+oneOf('+-*/').run('+x') // result: '+', index: 1
+satisfy((c) => c >= '0' && c <= '9', 'digit').run('7x') // result: '7'
 ```
 
 ### Char classes
@@ -226,6 +231,11 @@ regex(/^[a-z]+/).run('abc123') // result: 'abc', index: 3
 | `digits`             | `Parser<string>` | One or more `[0-9]`.                                                           |
 | `letter`             | `Parser<string>` | Single `[A-Za-z]`.                                                             |
 | `letters`            | `Parser<string>` | One or more `[A-Za-z]`.                                                        |
+| `alphaNum`           | `Parser<string>` | Single `[A-Za-z0-9]`.                                                          |
+| `hexDigit`           | `Parser<string>` | Single `[0-9A-Fa-f]`.                                                          |
+| `octDigit`           | `Parser<string>` | Single `[0-7]`.                                                                |
+| `upper`              | `Parser<string>` | Single `[A-Z]`.                                                                |
+| `lower`              | `Parser<string>` | Single `[a-z]`.                                                                |
 | `whitespace`         | `Parser<string>` | One or more whitespace chars (`\s+`).                                          |
 | `optionalWhitespace` | `Parser<string>` | Zero or more whitespace chars; always succeeds with a (possibly empty) string. |
 
