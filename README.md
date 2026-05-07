@@ -22,7 +22,7 @@ greeting.run('hello world')
 - **Great TypeScript inference**: `sequenceOf([str('x'), digits])` infers `Parser<[string, string]>`.
 - **UTF-8 aware** character parsers; `withSpan` / `spanMap` carry start/end byte offsets through the parse for AST tooling.
 - **String _and_ binary inputs**: `string`, `ArrayBuffer`, `TypedArray`, `DataView` all work; bit- and byte-level primitives ship in the box.
-- **Two-layer error model**: primitive parsers produce `ParseError @ index N -> <name>: ...` strings; consumers map them into structured errors with `errorMap`.
+- **Two-layer error model**: primitive parsers emit a structured `ParseError` (with `parser`/`index`/`message`/`expected`/`actual`/`context` fields); consumers reshape them with `errorMap` at meaningful boundaries.
 - **Zero runtime dependencies.** ESM-only, ~12 KB minified.
 
 ### What parsil **isn't**
@@ -101,17 +101,18 @@ const intLit = P.digits
 
 ### The two-layer error model
 
-Primitive parsers produce strings shaped like `ParseError @ index N -> <name>: <description>`. Don't expose those raw to end users — map them at meaningful boundaries with `errorMap`:
+Primitive parsers emit a structured `ParseError` object (`{ parser, index, message, expected?, actual?, context? }`). Branch on `error.parser` for machine handling, run through `formatParseError(error)` for the conventional display string, or reshape into your own type at boundaries with `errorMap`:
 
 ```ts
-const number = P.digits.map(Number).errorMap(({ index }) => ({
+const number = P.digits.map(Number).errorMap(({ error, index }) => ({
   code: 'EXPECTED_NUMBER',
   message: 'Expected a number',
+  parser: error.parser, // 'digits'
   at: index,
 }))
 ```
 
-The result is now `Parser<number, { code: string; message: string; at: number }>` — the `E` type parameter tracks the error shape through the rest of the pipeline.
+The result is now `Parser<number, { code: string; message: string; parser: string; at: number }>` — the `E` type parameter tracks the error shape through the rest of the pipeline.
 
 ---
 
@@ -163,7 +164,7 @@ ipv4Header.run(new DataView(buffer)) // returns the tagged tuple
 ### Methods on `Parser<T, E>`
 
 ```ts
-class Parser<T, E = string> {
+class Parser<T, E = ParseError> {
   run(input: InputType): ResultType<T, E>
   fork<F>(input, onError, onSuccess): F
   map<U>(fn: (value: T) => U): Parser<U, E>
@@ -280,6 +281,7 @@ P.keyword('Let', { caseSensitive: false }).run('let x') // result: 'let'
 | `coroutine(fn)`                 | Write a parser as a procedural function that `run`s sub-parsers in turn. |
 | `everythingUntil(p)`            | Collect raw bytes until `p` would succeed; returns `number[]`.           |
 | `everyCharUntil(p)`             | Collect chars until `p` would succeed; returns the decoded string.       |
+| `inContext(label, p)`           | Wrap `p` so its failure carries `label` on `error.context`.              |
 
 ```ts
 import * as P from 'parsil'
@@ -490,17 +492,102 @@ message.run(new DataView(buf.buffer))
 
 ## Error handling
 
+Primitive parsers emit a structured `ParseError` object, not a string:
+
+```ts
+type ParseError = {
+  parser: string // 'char', 'str', 'regex', 'keyword', ...
+  index: number
+  message: string
+  expected?: string // what the parser was looking for, when known
+  actual?: string // what was at the position, when known
+  context?: string[] // outer-first stack from `inContext` wrappers
+}
+```
+
+Branch on `error.parser` for machine-readable handling, or run the result through `formatParseError(error)` to get the conventional `ParseError [outer > inner] @ index N -> <parser>: <message>` display string:
+
+```ts
+import * as P from 'parsil'
+
+const r = P.char('!').run('?')
+if (r.isError) {
+  console.log(r.error.parser) // 'char'
+  console.log(r.error.expected) // '!'
+  console.log(r.error.actual) // '?'
+  console.log(P.formatParseError(r.error))
+  // ParseError @ index 0 -> char: Expected '!', but got '?'
+}
+```
+
 Use `fork` if you prefer callbacks over a result envelope:
 
 ```ts
 P.str('hello').fork(
   'hello world',
-  (error, state) => console.error(error, state),
-  (result, state) => console.log('matched', result, 'at', state.index)
+  (error, _state) => console.error(P.formatParseError(error)),
+  (result, _state) => console.log('matched', result)
 )
 ```
 
-Layer `errorMap` to turn primitive `ParseError` strings into structured errors at meaningful boundaries — typically once per "token" in your grammar. Inside a chain, errors flow through unmodified, so you only need to map at the boundary where users will see them.
+### Two-layer mapping
+
+Map primitive errors into your own shape at meaningful boundaries — typically once per "token" — with `errorMap`:
+
+```ts
+const number = P.digits.map(Number).errorMap(({ error, index }) => ({
+  code: 'EXPECTED_NUMBER' as const,
+  message: 'Expected a number',
+  parser: error.parser,
+  at: index,
+}))
+```
+
+The `E` type parameter tracks the error shape through the rest of the pipeline (`Parser<number, { code: 'EXPECTED_NUMBER'; ... }>`). Inside a chain, errors propagate unchanged — you only need to map at the boundary where end users will see them.
+
+### Adding context with `inContext`
+
+Wrap a parser with a context label that gets pushed onto `error.context` if it fails. Useful for surfacing **where** in the grammar the failure happened:
+
+```ts
+const argList = P.inContext('argument list', P.sepBy(comma)(arg))
+const fnCall = P.inContext(
+  'function call',
+  P.sequenceOf([ident, lparen, argList, rparen])
+)
+
+fnCall.run('foo(a, !, c)')
+// On failure: error.context === ['function call', 'argument list']
+// formatParseError adds '[function call > argument list]' to the display
+```
+
+Outer labels appear first in the array (and the formatter renders them with `>` separators).
+
+`inContext` complements `label(name, p)` (in #20): `inContext` **wraps** (preserves the inner error and adds scope), `label` **replaces** (drops the inner and emits a single "expected `<name>`"). Use `inContext` to keep diagnostics; use `label` when the inner error is noise.
+
+### Furthest-progress in `choice`
+
+When all branches of a `choice` fail, the branch that consumed the most input is heuristically the one the user intended. `choice` automatically reports that branch's failure (along with the aggregated `expected` set):
+
+```ts
+P.choice([P.sequenceOf([P.str('he'), P.str('llo!')]), P.str('xy')]).run('hello')
+// error.parser   = 'choice'
+// error.expected = 'hello! | xy'  (each branch's expected, joined)
+// error.message  = 'Expected one of: hello! | xy; furthest branch failed
+//                   at index 2: Tried to match 'llo!', but got unexpected end of input'
+```
+
+### Always backtracks
+
+parsil has no `try` / `cut` / commit primitive. Every alternative in `choice` is a full backtrack — if a branch fails after consuming input, `choice` rewinds to where that branch started before trying the next one. This keeps the model simple at the cost of some Megaparsec-style fine-grained control. If you need commit-on-progress semantics for a specific grammar, raise an issue describing the case.
+
+### `coroutine` is the one place we throw internally
+
+`coroutine` uses `throw`/`catch` as a control-flow primitive: a sub-parser failure throws the failure state back to the coroutine wrapper, which packages it as a normal parse failure. A genuine programming error in the coroutine body (a thrown `Error`, a misuse of `run`) is also caught and surfaced as a `ParseError`. The "never throw" rule applies to the **public** parser surface — `parser.run(...)` always returns a `ResultType<T, E>` — not to internal mechanics scoped to a single combinator.
+
+### English-only error messages
+
+Primitive `ParseError.message` strings are English-only. Localized messages are the consumer's responsibility — apply `errorMap` at boundary parsers (one per token, typically) to translate or replace. We don't plan to localize at the primitive level: the surface area would explode and the right level of localization is application-specific.
 
 ---
 
