@@ -237,6 +237,29 @@ regex(/^[a-z]+/).run('abc123') // result: 'abc', index: 3
 | `startOfInput` | `Parser<null, string>`  | Asserts the cursor is at byte 0.                   |
 | `endOfInput`   | `Parser<null, string>`  | Asserts the cursor is past the last byte.          |
 
+### Lexeme helpers
+
+For free-form languages where tokens are separated by whitespace, and where keywords must not match partial prefixes of identifiers.
+
+| Parser       | Type                                                                | Description                                                                                 |
+| ------------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `tok(p)`     | `<T, E>(p: Parser<T, E>) => Parser<T, E>`                           | Run `p`, then consume any trailing whitespace. Yields `p`'s result.                         |
+| `lexeme(p)`  | `<T, E>(p: Parser<T, E>) => Parser<T, E>`                           | Alias of `tok` (Megaparsec naming).                                                         |
+| `keyword(s)` | `(s: string, opts?: { caseSensitive?: boolean }) => Parser<string>` | Match an exact string but fail if the next char is a word char (letter, digit, underscore). |
+
+```ts
+import * as P from 'parsil'
+
+const lparen = P.tok(P.char('('))
+const word = P.tok(P.letters)
+P.sequenceOf([word, lparen, word]).run('foo  ( bar')
+// result: ['foo', '(', 'bar']
+
+P.keyword('let').run('let x') // result: 'let'
+P.keyword('let').run('letter') // fails (boundary check)
+P.keyword('Let', { caseSensitive: false }).run('let x') // result: 'let'
+```
+
 ### Combinators
 
 | Combinator                      | Description                                                              |
@@ -382,25 +405,28 @@ Editors can convert byte offsets to `(line, col)` after the parse runs.
 
 ### Whitespace at lexeme boundary
 
-Skip optional whitespace after every token so your grammar doesn't have to spell it out:
+Use `tok` (or its alias `lexeme`) to consume trailing whitespace after every token, so your grammar doesn't repeat the pattern:
 
 ```ts
 import * as P from 'parsil'
 
-const lex = <T>(p: P.Parser<T>) => p.skip(P.optionalWhitespace)
+const lparen = P.tok(P.char('('))
+const rparen = P.tok(P.char(')'))
+const word = P.tok(P.letters)
+const comma = P.tok(P.char(','))
 
-const lparen = lex(P.char('('))
-const rparen = lex(P.char(')'))
-const word = lex(P.letters)
-
-const callish = P.sequenceOf([
-  word,
-  lparen,
-  P.sepBy(lex(P.char(',')))(word),
-  rparen,
-])
+const callish = P.sequenceOf([word, lparen, P.sepBy(comma)(word), rparen])
 
 callish.run('foo ( a , b , c )') // ['foo', '(', ['a', 'b', 'c'], ')']
+```
+
+For language keywords, use `keyword` instead of `str` to enforce a word boundary:
+
+```ts
+import * as P from 'parsil'
+
+P.keyword('let').run('let x = 1') // 'let'
+P.keyword('let').run('letter') // fails — would be a partial-prefix match
 ```
 
 ### Recursive structures
