@@ -1,4 +1,4 @@
-import { Parser } from '@parsil/parser'
+import { ParseError, Parser } from '@parsil/parser'
 
 /**
  * `recursive` is a parser combinator that allows creating parsers which reference themselves,
@@ -18,7 +18,7 @@ import { Parser } from '@parsil/parser'
  * @param parserThunk A function that returns a parser. This is to avoid immediate execution of the parser.
  * @returns A parser that can parse recursive structures.
  */
-export const recursive = <T, E = string>(
+export const recursive = <T, E = ParseError>(
   parserThunk: () => Parser<T, E>
 ): Parser<T, E> =>
   new Parser((state) => {

@@ -4,6 +4,7 @@ import {
   Parser,
   ParserState,
   updateResult,
+  updateState,
 } from '@parsil/parser'
 import { getNextCharWidth } from '@parsil/util'
 
@@ -94,14 +95,8 @@ export const recoverAt = <T>(
         error: failureError,
         index: failureIndex,
       }
-      // Update result and advance the parser cursor to the sync position
-      // (or EOI). Use updateResult-with-index pattern via a state literal.
-      return {
-        ...state,
-        index: cursor,
-        result: recovered,
-        error: null as unknown as ParseError,
-        isError: false,
-      }
+      // Advance the parser cursor to the sync position (or EOI) and
+      // emit the recovery envelope as the success value.
+      return updateState(state, cursor, recovered)
     }
   )

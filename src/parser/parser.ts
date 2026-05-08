@@ -280,7 +280,7 @@ export class Parser<T, E = ParseError> {
     return new Parser((state): ParserState<T2, E> => {
       const newState = this.p(state)
 
-      if (newState.isError) return newState as unknown as ParserState<T2, E>
+      if (newState.isError) return forward(newState)
 
       return updateResult(newState, fn(newState.result))
     })
@@ -299,7 +299,7 @@ export class Parser<T, E = ParseError> {
     return new Parser((state): ParserState<T2, E> => {
       const nextState = this.p(state)
 
-      if (nextState.isError) return nextState as unknown as ParserState<T2, E>
+      if (nextState.isError) return forward(nextState)
 
       return fn(nextState.result).p(nextState)
     })
