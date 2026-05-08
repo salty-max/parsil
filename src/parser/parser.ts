@@ -179,13 +179,21 @@ const createParserState = (
 
   if (typeof target === 'string') {
     const bytes = encoder.encode(target)
-    dataView = new DataView(bytes.buffer)
+    // Some `TextEncoder` implementations may return a `Uint8Array`
+    // whose underlying buffer is larger than `byteLength` (over-allocation).
+    // Pin the view to the encoded bytes only, otherwise the parser
+    // could read past the end of the input.
+    dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
     inputType = InputTypes.STRING
   } else if (target instanceof ArrayBuffer) {
     dataView = new DataView(target)
     inputType = InputTypes.ARRAY_BUFFER
   } else if (isTypedArray(target)) {
-    dataView = new DataView(target.buffer)
+    // Preserve the typed array's view onto its buffer (`byteOffset`,
+    // `byteLength`). Without this, callers passing `new Uint8Array(buf,
+    // offset, length)` would have the parser read the entire underlying
+    // buffer instead of just their slice.
+    dataView = new DataView(target.buffer, target.byteOffset, target.byteLength)
     inputType = InputTypes.TYPED_ARRAY
   } else if (target instanceof DataView) {
     dataView = target
@@ -430,8 +438,12 @@ export class Parser<T, E = ParseError> {
   lookahead(): Parser<T, E> {
     return new Parser((state): ParserState<T, E> => {
       const s1 = this.p(state)
-      if (s1.isError) return s1
-      // succeed but restore the original index/position
+      // Preserve the original cursor on both branches: a lookahead
+      // never advances input, regardless of whether the inner parser
+      // consumed before succeeding or failing. Without this, an inner
+      // parser that consumed-then-failed would leak its advance into
+      // the surrounding combinator. Matches the standalone `lookAhead`
+      // parser's semantics.
       return { ...s1, index: state.index }
     })
   }
