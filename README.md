@@ -395,6 +395,33 @@ P.between(P.char('('), P.char(')'))(P.letters).run('(abc)')
 | `doubleBE` | `Parser<number>`                    | Read 8 bytes as a 64-bit IEEE 754 big-endian float.    |
 | `doubleLE` | `Parser<number>`                    | Read 8 bytes as a 64-bit IEEE 754 little-endian float. |
 
+### Utilities
+
+Helpers that aren't parsers themselves but pair well with them.
+
+| Helper                | Type                                                                          | Description                                                                                                                                             |
+| --------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `linecol(input, idx)` | `(input: string \| DataView, index: number) => { line: number; col: number }` | Convert a byte offset into a 1-based `{ line, col }`. Recognises `\n`, `\r`, and `\r\n`.                                                                |
+| `tap(fn)(p)`          | `<T>(fn) => <E>(p: Parser<T, E>) => Parser<T, E>`                             | Run a side-effect on every successful parse. `fn` receives `(value, state)` and is **never** called on failure. The result passes through unchanged.    |
+| `debugLog(label, p)`  | `<T, E>(label: string, p: Parser<T, E>) => Parser<T, E>`                      | Wrap a parser with enter/exit logging. Silent unless `PARSIL_DEBUG` env var is set; supports `*`, exact-match, `prefix*`, and comma-separated patterns. |
+
+```ts
+import * as P from 'parsil'
+
+// Editor-friendly diagnostics.
+P.linecol('foo\nbar\nbaz', 9) // { line: 3, col: 2 }
+
+// Trace what a parser sees.
+const traced = P.tap<string>((value, { index }) =>
+  console.log('matched', value, 'at', index)
+)(P.digits)
+
+// Enable from the shell — production stays silent.
+//   PARSIL_DEBUG='*' bun run my-script.ts
+//   PARSIL_DEBUG='ident,expr*' bun run my-script.ts
+const debug = P.debugLog('ident', P.letters)
+```
+
 ### Building custom parsers
 
 If you need to drop below the combinator layer (e.g., to optimize a hot path or implement a primitive), parsil exposes the state-update helpers:
