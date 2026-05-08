@@ -13,8 +13,8 @@ import { forward, Parser, updateResult } from '@parsil/parser'
  * @returns A function taking a parser and returning the list parser.
  */
 export const atMost =
-  <T>(n: number) =>
-  (p: Parser<T>): Parser<T[]> => {
+  (n: number) =>
+  <T>(p: Parser<T>): Parser<T[]> => {
     if (typeof n !== 'number' || n < 0) {
       throw new TypeError(
         `atMost must be called with a non-negative number, but got ${n}`

@@ -18,11 +18,16 @@
 
 import type { ParseError, Parser, StateTransformerFn } from '@parsil'
 import {
+  atLeast,
+  atMost,
   between,
   char,
   choice,
+  digit,
+  exactly,
   fail,
   letters,
+  repeatBetween,
   sepBy,
   sequenceOf,
   str,
@@ -78,22 +83,44 @@ describe('type surface (compile-time)', () => {
     expect(true).toBe(true)
   })
 
-  it('between composes parsers without requiring matching T', () => {
+  it('between preserves the content parser type via deferred-T inference', () => {
+    // `between(left, right)(content)` declares its `T` on the inner
+    // curried call so call-site inference flows from `content` directly.
+    // If T were on the outer generic it would resolve to `unknown` here.
     const p = between(char('('), char(')'))(letters)
-    // The current `between` signature loses the inner T (returns
-    // `unknown` because the mapped lambda flows through an `any`-bias
-    // in a deeply curried position). The end-user impact is a manual
-    // cast at boundary; not the focus of the strict-`any` work.
-    void p
+    const explicit: Parser<string, ParseError> = p
+    void explicit
     expect(true).toBe(true)
   })
 
-  it('sepBy preserves the value parser type', () => {
+  it('sepBy preserves the value parser type via deferred-V inference', () => {
     const p = sepBy(char(','))(letters)
-    // Same caveat as `between`: the curried form widens the inner T
-    // to `unknown` in the public type, even though the runtime is
-    // correct. Tracked for follow-up; not blocking #29.
-    void p
+    const explicit: Parser<string[], ParseError> = p
+    void explicit
+    expect(true).toBe(true)
+  })
+
+  it('exactly / atLeast / atMost / repeatBetween defer T to the second curried call', () => {
+    // All four count-prefixed combinators take `(n)` first and the
+    // parser second. Their `T` generic must live on the inner call so
+    // call-site inference flows from the parser argument; otherwise
+    // each one degrades to `Parser<unknown[], ParseError>`.
+    const p1 = exactly(3)(letters)
+    const e1: Parser<string[], ParseError> = p1
+    void e1
+
+    const p2 = atLeast(2)(digit)
+    const e2: Parser<string[], ParseError> = p2
+    void e2
+
+    const p3 = atMost(4)(digit)
+    const e3: Parser<string[], ParseError> = p3
+    void e3
+
+    const p4 = repeatBetween(2, 5)(digit)
+    const e4: Parser<string[], ParseError> = p4
+    void e4
+
     expect(true).toBe(true)
   })
 
