@@ -25,7 +25,7 @@ describe('everyCharUntil', () => {
     expect(result).toStrictEqual({
       isError: true,
       error: expect.objectContaining({
-        parser: 'everythingUntil',
+        parser: 'everyCharUntil',
         index: 6,
         message: 'Unexpected end of input',
       }),
@@ -106,6 +106,51 @@ describe('everyCharUntil', () => {
       assertIsOk(result)
       expect(result.result).toBe('hell')
       expect(result.index).toBe(4)
+    })
+  })
+
+  // Behavior table from #30: char-level mode always returns a string,
+  // even on raw byte buffers (decoded as UTF-8).
+  describe('UTF-8 buffer input', () => {
+    it('decodes a UTF-8 buffer up to the marker', () => {
+      const buf = new TextEncoder().encode('héllo,foo')
+      const parser = everyCharUntil(str(','))
+      const result = parser.run(buf)
+
+      assertIsOk(result)
+      expect(result.result).toBe('héllo')
+      // 'héllo' = h(1) + é(2) + l(1) + l(1) + o(1) = 6 bytes
+      expect(result.index).toBe(6)
+    })
+  })
+
+  describe('boundary cases', () => {
+    it('returns "" when the marker is at the very start', () => {
+      const parser = everyCharUntil(str('end'))
+      const result = parser.run('end456')
+
+      assertIsOk(result)
+      expect(result.result).toBe('')
+      expect(result.index).toBe(0)
+    })
+
+    it('returns the full prefix when the marker is at the very end', () => {
+      const parser = everyCharUntil(str('end'))
+      const result = parser.run('123end')
+
+      assertIsOk(result)
+      expect(result.result).toBe('123')
+      expect(result.index).toBe(3)
+    })
+
+    it('fails on empty input (marker not found)', () => {
+      const parser = everyCharUntil(str('end'))
+      const result = parser.run('')
+
+      assertIsError(result)
+      expect(result.error.parser).toBe('everyCharUntil')
+      expect(result.error.message).toBe('Unexpected end of input')
+      expect(result.index).toBe(0)
     })
   })
 })
