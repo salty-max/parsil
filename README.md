@@ -314,11 +314,18 @@ P.keyword('Let', { caseSensitive: false }).run('let x') // result: 'let'
 | `sequenceOf(parsers)`           | Run parsers in order; succeed with a tuple of results.                   |
 | `choice(parsers)`               | Try each in order; succeed with the first match.                         |
 | `many(p)`                       | Zero or more matches of `p`. Always succeeds (possibly with `[]`).       |
-| `manyOne(p)`                    | One or more matches of `p`. Fails if zero matches.                       |
+| `manyOne(p)` (alias `many1`)    | One or more matches of `p`. Fails if zero matches.                       |
+| `atLeast(n)(p)`                 | At least `n` matches of `p`. Curried.                                    |
+| `atMost(n)(p)`                  | At most `n` matches of `p`. Always succeeds. Curried.                    |
+| `repeatBetween(min, max)(p)`    | Between `min` and `max` matches of `p` (inclusive). Curried.             |
 | `exactly(n)(p)`                 | Exactly `n` matches of `p`. Curried.                                     |
 | `between(left, right)(content)` | Parse `content` enclosed by `left` and `right`. Curried.                 |
 | `sepBy(sep)(value)`             | Zero or more `value` separated by `sep`. Curried.                        |
 | `sepByOne(sep)(value)`          | One or more `value` separated by `sep`. Curried.                         |
+| `sepEndBy(sep)(value)`          | Zero or more `value` separated by `sep`, optional trailing `sep`.        |
+| `sepEndByOne(sep)(value)`       | One or more `value` separated by `sep`, optional trailing `sep`.         |
+| `endBy(sep)(value)`             | Zero or more `value`, each terminated by `sep`. Trailing `sep` required. |
+| `endByOne(sep)(value)`          | One or more `value`, each terminated by `sep`. Trailing `sep` required.  |
 | `chainl1(operand, op)`          | One or more operands separated by `op`, **left-associative** fold.       |
 | `chainr1(operand, op)`          | One or more operands separated by `op`, **right-associative** fold.      |
 | `possibly(p)`                   | Optional: succeeds with `null` if `p` fails.                             |
