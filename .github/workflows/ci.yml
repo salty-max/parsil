@@ -118,7 +118,47 @@ jobs:
           path: node_modules
           key: node-modules-${{ hashFiles('bun.lock') }}
           fail-on-cache-miss: true
-      - run: bun run test:coverage
+
+      # Run coverage and capture both the text table (for the job
+      # summary on GitHub) and the lcov file (for the artifact).
+      - name: Run coverage
+        id: coverage
+        run: |
+          mkdir -p coverage
+          bun run test:coverage 2>&1 | tee coverage/run.log
+          # Bun's text reporter prints a 3-ruler table:
+          #   ----- (ruler 1)
+          #   File   | % Funcs | % Lines | Uncovered Line #s
+          #   ----- (ruler 2)
+          #   ...rows...
+          #   ----- (ruler 3)
+          # Capture from ruler 1 to ruler 3 inclusive.
+          awk 'BEGIN{c=0} /^-+\|/{c++; print; if(c==3) exit; next} c>0' \
+            coverage/run.log > coverage/table.txt
+          # Pull the totals row (% Funcs / % Lines for "All files").
+          grep -E '^\s*All files' coverage/run.log > coverage/totals.txt || true
+
+      - name: Write job summary
+        if: always()
+        run: |
+          {
+            echo "## Test coverage"
+            echo
+            if [ -s coverage/totals.txt ]; then
+              echo "**Totals:** \`$(cat coverage/totals.txt | xargs)\`"
+              echo
+            fi
+            echo '<details><summary>Per-file coverage</summary>'
+            echo
+            echo '```'
+            cat coverage/table.txt
+            echo '```'
+            echo
+            echo '</details>'
+            echo
+            echo '_Full \`lcov.info\` is uploaded as a 30-day workflow artifact._'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/upload-artifact@v4
         with:
           name: coverage-lcov
