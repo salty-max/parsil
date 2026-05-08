@@ -45,7 +45,7 @@ describe('str', () => {
 
   it('should throw error if target is empty', () => {
     expect(() => str('')).toThrow(
-      `str must be called with a string with length > 1, but got ''`
+      `str must be called with a string of length >= 1, but got ''`
     )
   })
 })

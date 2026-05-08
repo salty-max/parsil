@@ -19,7 +19,7 @@ import { encoder, getCharacterLength, getString } from '@parsil/util'
  * const parser = str("abcd")
  * parser.run("abcd1234")  // returns { isError: false, result: "abcd", index: 4 }
  * parser.run("1234abcd")  // returns { isError: true, error: "ParseError @ index 0 -> str: Tried to match 'abcd', but got '1234...'", index: 0 }
- * str("")  // throws `str must be called with a string with length > 1, but got ''`
+ * str("")  // throws `str must be called with a string of length >= 1, but got ''`
  *
  * @param s The string to match against the input.
  * @throws {TypeError} If `s` is not a string or is an empty string.
@@ -28,7 +28,7 @@ import { encoder, getCharacterLength, getString } from '@parsil/util'
 export const str = (s: string): Parser<string> => {
   if (!s || getCharacterLength(s) < 1) {
     throw new TypeError(
-      `str must be called with a string with length > 1, but got '${s}'`
+      `str must be called with a string of length >= 1, but got '${s}'`
     )
   }
 
