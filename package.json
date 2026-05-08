@@ -1,6 +1,6 @@
 {
   "name": "parsil",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "description": "A parser combinators library written in Typescript",
   "repository": {
     "type": "git",
