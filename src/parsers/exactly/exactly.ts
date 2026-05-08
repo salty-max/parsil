@@ -1,4 +1,4 @@
-import { parseError, Parser, updateResult } from "@parsil/parser";
+import { forward, parseError, Parser, updateResult } from '@parsil/parser'
 
 /**
  * `exactly` is a parser combinator that applies a given parser exactly `n` times.
@@ -21,20 +21,19 @@ export function exactly<T, N extends number>(n: N): (p: Parser<T>) => Parser<T[]
 
   return (parser: Parser<T>) =>
     new Parser((state) => {
-      if (state.isError) return state;
+      if (state.isError) return forward(state);
 
       const results: T[] = [];
       let nextState = state;
 
       for (let i = 0; i < n; i++) {
-        const out = parser.p(nextState);
+        const out = parser.p(nextState)
 
         if (out.isError) {
-          return out;
-        } else {
-          nextState = out;
-          results.push(nextState.result);
+          return forward(out)
         }
+        nextState = out
+        results.push(out.result)
       }
 
       return updateResult(nextState, results);

@@ -1,4 +1,4 @@
-import { Parser, ParserState, updateResult } from '@parsil/parser'
+import { forward, Parser, ParserState, updateResult } from '@parsil/parser'
 
 /**
  * `sepBy` is a parser that matches zero or more occurrences of a value, separated by a given separator.
@@ -18,13 +18,13 @@ import { Parser, ParserState, updateResult } from '@parsil/parser'
  * // result is { isError: false, result: ['1','2','3','4'], ... }
  */
 export const sepBy =
-  <S, V, E>(sepParser: Parser<S, E>) =>
-  (valueParser: Parser<V, E>): Parser<Array<V>> =>
-    new Parser<Array<V>>((state) => {
-      if (state.isError) return state
+  <S, E>(sepParser: Parser<S, E>) =>
+  <V>(valueParser: Parser<V, E>): Parser<Array<V>, E> =>
+    new Parser<Array<V>, E>((state) => {
+      if (state.isError) return forward(state)
 
       const results: Array<V> = []
-      let nextState: ParserState<S | V, E> = state
+      let nextState: ParserState<unknown, E> = state
 
       while (true) {
         const valueState = valueParser.p(nextState)

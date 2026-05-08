@@ -1,4 +1,5 @@
 import {
+  forward,
   parseError,
   Parser,
   ParserState,
@@ -27,7 +28,7 @@ export const bytes = (n: number): Parser<Uint8Array> => {
 
   return new Parser(
     (state): ParserState<Uint8Array, ReturnType<typeof parseError>> => {
-      if (state.isError) return state
+      if (state.isError) return forward(state)
 
       const { dataView, index } = state
       if (index + n > dataView.byteLength) {

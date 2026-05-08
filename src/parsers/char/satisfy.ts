@@ -1,4 +1,5 @@
 import {
+  forward,
   ParseError,
   parseError,
   Parser,
@@ -33,7 +34,7 @@ export const satisfy = (
   label?: string
 ): Parser<string> =>
   new Parser((state): ParserState<string, ParseError> => {
-    if (state.isError) return state
+    if (state.isError) return forward(state)
 
     const { index, dataView } = state
     const expected = label ?? 'a character matching the predicate'

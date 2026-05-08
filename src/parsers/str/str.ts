@@ -1,4 +1,5 @@
 import {
+  forward,
   ParseError,
   parseError,
   Parser,
@@ -36,7 +37,7 @@ export const str = (s: string): Parser<string> => {
   return new Parser((state): ParserState<string, ParseError> => {
     const { dataView, index, isError } = state
 
-    if (isError) return state
+    if (isError) return forward(state)
 
     const remainingBytes = dataView.byteLength - index
 

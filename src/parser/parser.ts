@@ -26,23 +26,26 @@ export type ParserState<T, E> = {
 /**
  * StateTransformerFn is a function type used to transform one parser state into another.
  *
- * The input state is typed as `ParserState<any, any>` deliberately:
- * a parser receives the predecessor's state, whose result/error types
- * are unrelated to this parser's `T`/`E`. Tightening to `unknown`
- * forces a cast on every `return state` early-exit (~25 sites), which
- * makes the noise outweigh the gain. The unsafety is contained — a
- * parser may only forward `state` when it has not produced its own
- * result, i.e. when forwarding an error or position untouched.
+ * The input state's result type is `unknown`: a parser receives the
+ * predecessor's state, whose `result` is irrelevant to this parser's
+ * computation. The error type `E` flows through because chained
+ * parsers share a single `E` channel — when an upstream parser has
+ * already errored, its error is in the same shape this parser would
+ * produce, so it can be forwarded without reshaping.
  *
  * Defaulting `E` to {@link ParseError} matches the structured error
  * shape every primitive emits. Consumers using a custom error type
  * override it explicitly via `errorMap`.
  *
+ * For early-exit error forwarding, use {@link forward} — it
+ * concentrates the necessary `unknown -> T` cast in one place so the
+ * call sites read `if (state.isError) return forward(state)`.
+ *
  * @template T The type of the result.
  * @template E The type of the error; defaults to `ParseError`.
  */
 export type StateTransformerFn<T, E = ParseError> = (
-  state: ParserState<any, any>
+  state: ParserState<unknown, E>
 ) => ParserState<T, E>
 
 /**
@@ -225,7 +228,7 @@ export class Parser<T, E = ParseError> {
    * @returns The resulting parser state.
    */
   run(target: InputType): ResultType<T, E> {
-    const initialState = createParserState(target)
+    const initialState = createParserState(target) as ParserState<unknown, E>
     const resultState = this.p(initialState)
 
     if (resultState.isError) {
@@ -258,7 +261,7 @@ export class Parser<T, E = ParseError> {
     errorFn: (error: E, parsingState: ParserState<T, E>) => F,
     successFn: (result: T, parsingState: ParserState<T, E>) => F
   ) {
-    const state = createParserState(target)
+    const state = createParserState(target) as ParserState<unknown, E>
     const newState = this.p(state)
 
     if (newState.isError) {
@@ -315,7 +318,11 @@ export class Parser<T, E = ParseError> {
    */
   errorMap<E2>(fn: (error: Err<E>) => E2): Parser<T, E2> {
     return new Parser((state): ParserState<T, E2> => {
-      const nextState = this.p(state)
+      // The wrapped parser carries error type `E`; the wrapper exposes
+      // `E2`. Re-cast on entry so the inner call typechecks; the cast is
+      // safe because we either reshape the error below or forward the
+      // success branch unchanged.
+      const nextState = this.p(state as unknown as ParserState<unknown, E>)
       if (!nextState.isError) return nextState as unknown as ParserState<T, E2>
 
       return updateError(
@@ -466,15 +473,46 @@ export const updateResult = <T, E, T2>(
 /**
  * Updates the state of the parser with an error.
  *
+ * The returned state's result slot is typed `never`: a parser that
+ * has failed cannot have produced a result, so the type system should
+ * treat the result as unreachable. This also lets the failure branch
+ * unify cleanly with the success branch in a parser's state
+ * transformer (where the success branch produces `ParserState<T, E>`):
+ * `ParserState<never, E2> | ParserState<T, E2>` simplifies to
+ * `ParserState<T, E2>`.
+ *
  * @param state The previous state of the parser.
  * @param error The new error value.
  * @returns A new parser state with updated error information.
  */
-export const updateError = <T, E, E2>(
-  state: ParserState<T, E>,
+export const updateError = <E2>(
+  state: ParserState<unknown, unknown>,
   error: E2
-): ParserState<T, E2> => ({
-  ...state,
-  isError: true,
-  error,
-})
+): ParserState<never, E2> =>
+  ({
+    ...state,
+    isError: true,
+    error,
+  }) as ParserState<never, E2>
+
+/**
+ * Forward a predecessor error-state untouched.
+ *
+ * Used at the top of every parser to short-circuit on an upstream
+ * error: `if (state.isError) return forward(state)`. The cast is safe
+ * because the caller has just observed `isError === true`, so
+ * `result` is irrelevant — only `error` and `index` are read
+ * downstream. The cast is concentrated here so the unsafety lives in
+ * exactly one spot rather than at every call site.
+ *
+ * The return type uses `never` for the result slot: `never` is a
+ * subtype of any `T`, so a `ParserState<never, E>` reads as
+ * `ParserState<T, E>` in the union returned from a parser's state
+ * transformer without forcing the caller to annotate `T` explicitly.
+ *
+ * @param state The predecessor state to forward.
+ * @returns The same state typed as `ParserState<never, E>`.
+ */
+export const forward = <E>(
+  state: ParserState<unknown, E>
+): ParserState<never, E> => state as ParserState<never, E>

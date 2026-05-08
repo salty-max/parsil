@@ -1,4 +1,10 @@
-import { ParseError, Parser, ParserState, updateResult } from '@parsil/parser'
+import {
+  forward,
+  ParseError,
+  Parser,
+  ParserState,
+  updateResult,
+} from '@parsil/parser'
 import { getNextCharWidth } from '@parsil/util'
 
 /**
@@ -56,9 +62,7 @@ export const recoverAt = <T>(
 ): Parser<RecoveryResult<T>> =>
   new Parser<RecoveryResult<T>>(
     (state): ParserState<RecoveryResult<T>, ParseError> => {
-      if (state.isError) {
-        return state as ParserState<RecoveryResult<T>, ParseError>
-      }
+      if (state.isError) return forward(state)
 
       // Try p first.
       const out = p.p(state)

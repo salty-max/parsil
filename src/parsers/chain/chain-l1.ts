@@ -1,4 +1,4 @@
-import { Parser, updateResult } from '@parsil/parser'
+import { forward, Parser, updateResult } from '@parsil/parser'
 
 /**
  * Parse one or more `operand`s separated by `op`, left-associative.
@@ -26,7 +26,7 @@ export const chainl1 = <T>(
   op: Parser<(left: T, right: T) => T>
 ): Parser<T> =>
   new Parser<T>((state) => {
-    if (state.isError) return state
+    if (state.isError) return forward(state)
 
     const firstState = operand.p(state)
     if (firstState.isError) return firstState

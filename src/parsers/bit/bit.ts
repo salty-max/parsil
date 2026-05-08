@@ -1,4 +1,5 @@
 import {
+  forward,
   parseError,
   Parser,
   updateError,
@@ -17,7 +18,7 @@ import {
  * @returns A parser that reads the next bit from the input.
  */
 export const bit: Parser<number> = new Parser((state) => {
-  if (state.isError) return state
+  if (state.isError) return forward(state)
 
   const byteOffset = Math.floor(state.index / 8)
 

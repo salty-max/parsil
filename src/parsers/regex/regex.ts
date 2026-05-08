@@ -1,4 +1,5 @@
 import {
+  forward,
   ParseError,
   parseError,
   Parser,
@@ -43,7 +44,7 @@ export const regex = (re: RegExp): Parser<string> => {
   const reStr = re.toString()
 
   return new Parser<string>((state): ParserState<string, ParseError> => {
-    if (state.isError) return state
+    if (state.isError) return forward(state)
     const { dataView, index } = state
     const rest = getString(index, dataView.byteLength - index, dataView)
 

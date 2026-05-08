@@ -1,4 +1,4 @@
-import { parseError, Parser, updateError } from '@parsil/parser'
+import { forward, parseError, Parser, updateError } from '@parsil/parser'
 import { many } from '@parsil/parsers/many/many'
 
 /**
@@ -14,7 +14,7 @@ import { many } from '@parsil/parsers/many/many'
  */
 export const manyOne = function manyOne<T>(parser: Parser<T>): Parser<T[]> {
   return new Parser((state) => {
-    if (state.isError) return state
+    if (state.isError) return forward(state)
 
     const out = many(parser).p(state)
 

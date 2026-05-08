@@ -1,4 +1,10 @@
-import { parseError, Parser, updateError, updateState } from '@parsil/parser'
+import {
+  forward,
+  parseError,
+  Parser,
+  updateError,
+  updateState,
+} from '@parsil/parser'
 import { getNextCharWidth, getUtf8Char } from '@parsil/util'
 
 const digitRegex = /^\d/
@@ -13,7 +19,7 @@ const digitRegex = /^\d/
  * @returns A parser that matches a single digit.
  */
 export const digit: Parser<string> = new Parser((state) => {
-  if (state.isError) return state
+  if (state.isError) return forward(state)
 
   const { dataView, index } = state
 

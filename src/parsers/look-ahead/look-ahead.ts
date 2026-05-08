@@ -1,4 +1,9 @@
-import { Parser, updateError, updateResult } from '@parsil/parser/parser'
+import {
+  forward,
+  Parser,
+  updateError,
+  updateResult,
+} from '@parsil/parser/parser'
 
 /**
  * `lookAhead` runs the given parser without consuming the input.
@@ -13,7 +18,7 @@ import { Parser, updateError, updateResult } from '@parsil/parser/parser'
  */
 export const lookAhead = <T, E>(parser: Parser<T, E>): Parser<T, E> =>
   new Parser((state) => {
-    if (state.isError) return state
+    if (state.isError) return forward(state)
 
     const nextState = parser.p(state)
     return nextState.isError

@@ -71,13 +71,13 @@ export const coroutine = <T, E = ParseError>(
         throw nextState
       }
 
-      currentState = nextState as ParserState<unknown, E>
+      currentState = nextState
       return nextState.result
     }
 
     try {
       const result = parserFn(run)
-      return updateResult(currentState, result) as ParserState<T, E>
+      return updateResult(currentState, result)
     } catch (e) {
       // The two paths that intentionally throw out of the coroutine are
       // both ParserState envelopes (sub-parser failure or invalid `run`
@@ -95,7 +95,7 @@ export const coroutine = <T, E = ParseError>(
       return updateError(
         currentState,
         parseError('coroutine', currentState.index, msg)
-      ) as ParserState<T, E>
+      ) as unknown as ParserState<T, E>
     }
   })
 }

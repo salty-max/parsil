@@ -1,4 +1,9 @@
-import { Parser, ParserState, updateError } from '@parsil/parser/parser'
+import {
+  forward,
+  Parser,
+  ParserState,
+  updateError,
+} from '@parsil/parser/parser'
 
 /**
  * `fail` is a parser that always fails with a given error message `error`. It does not consume any input.
@@ -17,7 +22,7 @@ export function fail<E>(error: E) {
   // — sound because the state always carries `isError: true`, so
   // `result` is conventionally never read.
   return new Parser<never, E>((state): ParserState<never, E> => {
-    if (state.isError) return state as ParserState<never, E>
-    return updateError(state, error) as ParserState<never, E>
+    if (state.isError) return forward(state)
+    return updateError(state, error)
   })
 }

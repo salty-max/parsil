@@ -1,4 +1,6 @@
 import {
+  forward,
+  ParseError,
   parseError,
   Parser,
   ParserState,
@@ -42,11 +44,11 @@ export const collectUntil = <U, T>(
   step: CollectStep<U>,
   parser: Parser<T>
 ): Parser<U[]> =>
-  new Parser((state) => {
-    if (state.isError) return state
+  new Parser<U[]>((state) => {
+    if (state.isError) return forward(state)
 
     const units: U[] = []
-    let cursor: ParserState<unknown, unknown> = state
+    let cursor: ParserState<unknown, ParseError> = state
 
     while (true) {
       const probe = parser.p(cursor)

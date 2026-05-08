@@ -1,14 +1,14 @@
 import { Err, Ok, ResultType } from '@parsil/parser'
 import { expect } from 'bun:test'
 
-export function assertIsOk<T>(
-  result: ResultType<T, string>
+export function assertIsOk<T, E>(
+  result: ResultType<T, E>
 ): asserts result is Ok<T> {
   expect(result.isError).toBe(false)
 }
 
-export function assertIsError<E>(
-  result: ResultType<any, E>
+export function assertIsError<T, E>(
+  result: ResultType<T, E>
 ): asserts result is Err<E> {
   expect(result.isError).toBe(true)
 }

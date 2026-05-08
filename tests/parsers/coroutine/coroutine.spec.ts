@@ -44,7 +44,9 @@ describe('coroutine', () => {
   })
 
   it('should handle errors thrown in the coroutine', () => {
-    const parser = coroutine((run) => {
+    // Pin E to `string` so `fail('...')` (which returns
+    // `Parser<never, string>`) typechecks against the run callback.
+    const parser = coroutine<number, string>((run) => {
       run(fail('Error in coroutine'))
       // This line should not be reached
       return 0

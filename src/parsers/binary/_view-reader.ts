@@ -1,4 +1,5 @@
 import {
+  forward,
   parseError,
   Parser,
   ParserState,
@@ -24,7 +25,7 @@ export const viewReader = <T>(
   read: (dataView: DataView, offset: number) => T
 ): Parser<T> =>
   new Parser((state): ParserState<T, ReturnType<typeof parseError>> => {
-    if (state.isError) return state
+    if (state.isError) return forward(state)
 
     const { dataView, index } = state
     if (index + byteLength > dataView.byteLength) {

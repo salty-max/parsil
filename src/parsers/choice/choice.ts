@@ -1,4 +1,5 @@
 import {
+  forward,
   ParseError,
   parseError,
   Parser,
@@ -23,28 +24,24 @@ import {
  * @throws {Error} If `parsers` is an empty list.
  * @returns A parser that applies the first successful parser in `parsers`.
  */
-export function choice<T, E = string>(parsers: Parser<T, E>[]): Parser<T, E>
 export function choice<
-  T extends readonly Parser<unknown, unknown>[],
+  E = ParseError,
+  T extends readonly Parser<unknown, E>[] = Parser<unknown, E>[],
 >(
   parsers: T
-): Parser<
-  T[number] extends Parser<infer R, unknown> ? R : never,
-  T[number] extends Parser<unknown, infer Err> ? Err : never
->
-export function choice<T extends Parser<unknown, unknown>[]>(
-  parsers: T
-) {
+): Parser<T[number] extends Parser<infer R, E> ? R : never, E> {
+  type Result = T[number] extends Parser<infer R, E> ? R : never
+
   if (parsers.length === 0) {
-    throw new Error('choice requires a non-empty list of parsers');
+    throw new Error('choice requires a non-empty list of parsers')
   }
 
   if (parsers.length === 1) {
-    return parsers[0] as Parser<T[number] extends Parser<infer U> ? U : never>
+    return parsers[0] as unknown as Parser<Result, E>
   }
 
-  return new Parser((state) => {
-    if (state.isError) return state
+  return new Parser<Result, E>((state) => {
+    if (state.isError) return forward(state)
 
     // Track two pieces of information across failing branches:
     // 1. expected[]   — what each branch was looking for, joined into
@@ -60,10 +57,7 @@ export function choice<T extends Parser<unknown, unknown>[]>(
     for (const p of parsers) {
       const out = p.p(state)
       if (!out.isError) {
-        return out as ParserState<
-          T[number] extends Parser<infer U> ? U : never,
-          ParseError
-        >
+        return out as ParserState<Result, E>
       }
       const e = out.error as ParseError | undefined
       if (e && typeof e === 'object') {
@@ -95,6 +89,10 @@ export function choice<T extends Parser<unknown, unknown>[]>(
       ? `${baseMessage}; furthest branch failed at index ${furthestError.index}: ${furthestError.message}`
       : baseMessage
 
+    // The composite failure is a `ParseError` regardless of `E`. The
+    // common case is `E = ParseError` and this is a no-op; if a consumer
+    // pinned a custom `E`, choice's own failure surfaces in `ParseError`
+    // shape — they can `errorMap` it back at the boundary.
     return updateError(
       state,
       parseError(
@@ -105,7 +103,7 @@ export function choice<T extends Parser<unknown, unknown>[]>(
         state.index,
         message,
         expected ? { expected } : {}
-      )
+      ) as unknown as E
     )
   })
 }

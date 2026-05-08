@@ -1,4 +1,4 @@
-import { Parser, updateResult } from '@parsil/parser'
+import { forward, Parser, updateResult } from '@parsil/parser'
 
 /**
  * Match `p` at most `n` times. Always succeeds (with `[]` if zero
@@ -21,7 +21,7 @@ export const atMost =
       )
     }
     return new Parser<T[]>((state) => {
-      if (state.isError) return state
+      if (state.isError) return forward(state)
 
       const results: T[] = []
       let cursor = state
