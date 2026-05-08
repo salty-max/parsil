@@ -309,33 +309,33 @@ P.keyword('Let', { caseSensitive: false }).run('let x') // result: 'let'
 
 ### Combinators
 
-| Combinator                      | Description                                                                                                                                            |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `sequenceOf(parsers)`           | Run parsers in order; succeed with a tuple of results.                                                                                                 |
-| `choice(parsers)`               | Try each in order; succeed with the first match.                                                                                                       |
-| `many(p)`                       | Zero or more matches of `p`. Always succeeds (possibly with `[]`).                                                                                     |
-| `manyOne(p)` (alias `many1`)    | One or more matches of `p`. Fails if zero matches.                                                                                                     |
-| `atLeast(n)(p)`                 | At least `n` matches of `p`. Curried.                                                                                                                  |
-| `atMost(n)(p)`                  | At most `n` matches of `p`. Always succeeds. Curried.                                                                                                  |
-| `repeatBetween(min, max)(p)`    | Between `min` and `max` matches of `p` (inclusive). Curried.                                                                                           |
-| `exactly(n)(p)`                 | Exactly `n` matches of `p`. Curried.                                                                                                                   |
-| `between(left, right)(content)` | Parse `content` enclosed by `left` and `right`. Curried.                                                                                               |
-| `sepBy(sep)(value)`             | Zero or more `value` separated by `sep`. Curried.                                                                                                      |
-| `sepByOne(sep)(value)`          | One or more `value` separated by `sep`. Curried.                                                                                                       |
-| `sepEndBy(sep)(value)`          | Zero or more `value` separated by `sep`, optional trailing `sep`.                                                                                      |
-| `sepEndByOne(sep)(value)`       | One or more `value` separated by `sep`, optional trailing `sep`.                                                                                       |
-| `endBy(sep)(value)`             | Zero or more `value`, each terminated by `sep`. Trailing `sep` required.                                                                               |
-| `endByOne(sep)(value)`          | One or more `value`, each terminated by `sep`. Trailing `sep` required.                                                                                |
-| `chainl1(operand, op)`          | One or more operands separated by `op`, **left-associative** fold.                                                                                     |
-| `chainr1(operand, op)`          | One or more operands separated by `op`, **right-associative** fold.                                                                                    |
-| `possibly(p)`                   | Optional: succeeds with `null` if `p` fails.                                                                                                           |
-| `lookAhead(p)`                  | Run `p` without advancing the cursor.                                                                                                                  |
-| `recursive(thunk)`              | Defer parser construction; lets you define mutually recursive parsers.                                                                                 |
-| `coroutine(fn)`                 | Write a parser as a procedural function that `run`s sub-parsers in turn.                                                                               |
-| `everythingUntil(p)`            | **Byte-level**: collect raw bytes until `p` would succeed; returns `number[]`. UTF-8 continuation bytes from string inputs are preserved as-is.        |
-| `everyCharUntil(p)`             | **Char-level** (UTF-8 aware): collect characters until `p` would succeed; returns a `string` of complete chars. Works on strings and on UTF-8 buffers. |
-| `inContext(label, p)`           | Wrap `p` so its failure carries `label` on `error.context`.                                                                                            |
-| `recoverAt(p, sync)`            | Try `p`; on failure, skip to next `sync` and yield a recovered envelope.                                                                               |
+| Combinator                      | Description                                                                                                                                                                                        |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sequenceOf(parsers)`           | Run parsers in order; succeed with a tuple of results.                                                                                                                                             |
+| `choice(parsers)`               | Try each in order; succeed with the first match.                                                                                                                                                   |
+| `many(p)`                       | Zero or more matches of `p`. Always succeeds (possibly with `[]`).                                                                                                                                 |
+| `manyOne(p)` (alias `many1`)    | One or more matches of `p`. Fails if zero matches.                                                                                                                                                 |
+| `atLeast(n)(p)`                 | At least `n` matches of `p`. Curried.                                                                                                                                                              |
+| `atMost(n)(p)`                  | At most `n` matches of `p`. Always succeeds. Curried.                                                                                                                                              |
+| `repeatBetween(min, max)(p)`    | Between `min` and `max` matches of `p` (inclusive). Curried.                                                                                                                                       |
+| `exactly(n)(p)`                 | Exactly `n` matches of `p`. Curried.                                                                                                                                                               |
+| `between(left, right)(content)` | Parse `content` enclosed by `left` and `right`. Curried.                                                                                                                                           |
+| `sepBy(sep)(value)`             | Zero or more `value` separated by `sep`. Curried.                                                                                                                                                  |
+| `sepByOne(sep)(value)`          | One or more `value` separated by `sep`. Curried.                                                                                                                                                   |
+| `sepEndBy(sep)(value)`          | Zero or more `value` separated by `sep`, optional trailing `sep`.                                                                                                                                  |
+| `sepEndByOne(sep)(value)`       | One or more `value` separated by `sep`, optional trailing `sep`.                                                                                                                                   |
+| `endBy(sep)(value)`             | Zero or more `value`, each terminated by `sep`. Trailing `sep` required.                                                                                                                           |
+| `endByOne(sep)(value)`          | One or more `value`, each terminated by `sep`. Trailing `sep` required.                                                                                                                            |
+| `chainl1(operand, op)`          | One or more operands separated by `op`, **left-associative** fold.                                                                                                                                 |
+| `chainr1(operand, op)`          | One or more operands separated by `op`, **right-associative** fold.                                                                                                                                |
+| `possibly(p)`                   | Optional: succeeds with `null` if `p` fails.                                                                                                                                                       |
+| `lookAhead(p)`                  | Run `p` without advancing the cursor.                                                                                                                                                              |
+| `recursive(thunk)`              | Defer parser construction; lets you define mutually recursive parsers.                                                                                                                             |
+| `coroutine(fn)`                 | Write a parser as a procedural function that `run`s sub-parsers in turn.                                                                                                                           |
+| `everythingUntil(p, mode?)`     | Collect input until `p` would succeed (sentinel **not** consumed). `mode: 'bytes'` (default) yields `number[]` of raw byte values; `mode: 'chars'` yields a UTF-8 `string` of complete codepoints. |
+| `everyCharUntil(p)` _(alias)_   | Deprecated thin alias for `everythingUntil(p, 'chars')`. Kept for readability; may be removed in a future major.                                                                                   |
+| `inContext(label, p)`           | Wrap `p` so its failure carries `label` on `error.context`.                                                                                                                                        |
+| `recoverAt(p, sync)`            | Try `p`; on failure, skip to next `sync` and yield a recovered envelope.                                                                                                                           |
 
 ```ts
 import * as P from 'parsil'
