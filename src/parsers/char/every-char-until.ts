@@ -1,32 +1,53 @@
 import { Parser } from '@parsil/parser'
-import { everythingUntil } from '@parsil/parsers/everything-until'
-import { decoder } from '@parsil/util'
+import {
+  CollectStep,
+  collectUntil,
+} from '@parsil/parsers/everything-until/_collect-until'
+import { getNextCharWidth, getUtf8Char } from '@parsil/util'
 
 /**
- * `everyCharUntil` is a higher-order parser that consumes the input until
- * the provided `parser` would succeed at the current position, then
- * returns everything before that point as a UTF-8 string.
+ * Read one UTF-8 char at the cursor. Returns `null` at end of input.
  *
- * Unlike `everythingUntil` (which returns the raw byte values), this
- * parser decodes the collected bytes via `TextDecoder`.
+ * Advances by the char's encoded byte width (1-4), so the cursor
+ * always lands on a char boundary. UTF-8's self-synchronizing property
+ * guarantees that a sentinel parser tested between iterations only
+ * matches at a true char boundary as well.
  *
- * UTF-8 correctness note: the underlying byte-by-byte walk is safe even
- * for inputs containing multi-byte chars. UTF-8 is self-synchronizing —
- * continuation bytes (0x80-0xBF) cannot be confused with start bytes or
- * with ASCII (0x00-0x7F), so a marker like `str('é')` ([0xC3, 0xA9]) only
- * matches at a true char boundary, and `decoder.decode` reassembles the
- * collected bytes into a valid UTF-8 string. The full test matrix lives
- * in `tests/parsers/char/every-char-until.spec.ts`.
+ * @param state Current parser state.
+ * @returns The decoded char and its byte width, or `null` if EOI.
+ */
+const charStep: CollectStep<string> = (state) => {
+  const { dataView, index } = state
+  if (index >= dataView.byteLength) return null
+  const width = getNextCharWidth(index, dataView)
+  if (index + width > dataView.byteLength) return null
+  return { unit: getUtf8Char(index, width, dataView), advance: width }
+}
+
+/**
+ * Collect the input **char-by-char** (UTF-8 aware) until the given
+ * sentinel parser would succeed. Returns the collected prefix as a
+ * `string`.
+ *
+ * Char-level: for inputs containing multi-byte UTF-8 (e.g. `'héllo'`,
+ * `'日本語'`), the returned string is composed of complete characters,
+ * never split mid-codepoint. For binary inputs treated as UTF-8, the
+ * decoder reassembles the bytes into a string (lossy if the bytes are
+ * not valid UTF-8). For raw byte collection, see `everythingUntil`.
+ *
+ * The sentinel is **not** consumed. If end of input is reached before
+ * the sentinel matches, the parser fails with a structured
+ * `ParseError` (`parser: 'everyCharUntil'`).
  *
  * @example
  * everyCharUntil(str('end')).run('123end456') // '123'
- * everyCharUntil(str(',')).run('日本語,foo')     // '日本語'
+ * everyCharUntil(str(',')).run('日本語,foo')   // '日本語'
+ * everyCharUntil(str('€')).run('hé€llo')       // 'hé'
  *
- * @param parser A parser that defines the condition for the end of consumption.
- * @returns A parser that consumes input until `parser` would succeed and
- *   returns the consumed prefix as a string.
+ * @param parser Sentinel parser whose success stops collection.
+ * @returns A parser yielding the consumed prefix as a string.
  */
-export const everyCharUntil = <T>(parser: Parser<T>) =>
-  everythingUntil(parser).map((results) =>
-    decoder.decode(Uint8Array.from(results))
+export const everyCharUntil = <T>(parser: Parser<T>): Parser<string> =>
+  collectUntil('everyCharUntil', charStep, parser).map((chars) =>
+    chars.join('')
   )
