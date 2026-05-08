@@ -77,11 +77,16 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       # Bump npm to a version that supports OIDC trusted publishing.
-      # Node 22 ships with npm 10.x, which is older than what npm
-      # requires (>= 11.5.1). This is a no-op once Node ships a newer
-      # bundled npm.
-      - name: Update npm
-        run: npm install -g npm@latest
+      # Node 22 ships with npm 10.x; OIDC requires >= 11.5.1. We use
+      # corepack (bundled with Node) to swap npm cleanly — `npm i -g
+      # npm@latest` self-upgrades in-place and intermittently breaks
+      # mid-install with "Cannot find module 'promise-retry'". Drop
+      # this step once Node bumps its bundled npm above the threshold.
+      - name: Activate npm 11 via corepack
+        run: |
+          corepack enable npm
+          corepack prepare npm@11.14.0 --activate
+          npm --version
 
       # Trusted Publishing: npm verifies the workflow's OIDC token
       # against the configured trusted publisher on npmjs.com. No
