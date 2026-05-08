@@ -365,6 +365,8 @@ P.between(P.char('('), P.char(')'))(P.letters).run('(abc)')
 
 ### Binary helpers
 
+**Bit-level** (work on the bit cursor; do not byte-align):
+
 | Parser         | Type                              | Description                                           |
 | -------------- | --------------------------------- | ----------------------------------------------------- |
 | `bit`          | `Parser<number>`                  | Read a single bit (0 or 1).                           |
@@ -373,6 +375,25 @@ P.between(P.char('('), P.char(')'))(P.letters).run('(abc)')
 | `uint(n)`      | `(n: number) => Parser<number>`   | Read `n` bits as an unsigned integer. `1 ≤ n ≤ 32`.   |
 | `int(n)`       | `(n: number) => Parser<number>`   | Read `n` bits as a signed integer (two's complement). |
 | `rawString(s)` | `(s: string) => Parser<number[]>` | Match the exact ASCII byte sequence of `s`.           |
+
+**Byte-level** (read fixed-width values from the underlying `DataView`):
+
+| Parser     | Type                                | Description                                            |
+| ---------- | ----------------------------------- | ------------------------------------------------------ |
+| `anyByte`  | `Parser<number>`                    | Read one unsigned byte (0..255).                       |
+| `bytes(n)` | `(n: number) => Parser<Uint8Array>` | Read exactly `n` raw bytes as a copy.                  |
+| `uint16BE` | `Parser<number>`                    | Read 2 bytes — unsigned big-endian (0..2^16-1).        |
+| `uint16LE` | `Parser<number>`                    | Read 2 bytes — unsigned little-endian.                 |
+| `uint32BE` | `Parser<number>`                    | Read 4 bytes — unsigned big-endian (0..2^32-1).        |
+| `uint32LE` | `Parser<number>`                    | Read 4 bytes — unsigned little-endian.                 |
+| `int16BE`  | `Parser<number>`                    | Read 2 bytes — signed big-endian (-2^15..2^15-1).      |
+| `int16LE`  | `Parser<number>`                    | Read 2 bytes — signed little-endian.                   |
+| `int32BE`  | `Parser<number>`                    | Read 4 bytes — signed big-endian (-2^31..2^31-1).      |
+| `int32LE`  | `Parser<number>`                    | Read 4 bytes — signed little-endian.                   |
+| `floatBE`  | `Parser<number>`                    | Read 4 bytes as a 32-bit IEEE 754 big-endian float.    |
+| `floatLE`  | `Parser<number>`                    | Read 4 bytes as a 32-bit IEEE 754 little-endian float. |
+| `doubleBE` | `Parser<number>`                    | Read 8 bytes as a 64-bit IEEE 754 big-endian float.    |
+| `doubleLE` | `Parser<number>`                    | Read 8 bytes as a 64-bit IEEE 754 little-endian float. |
 
 ### Building custom parsers
 
