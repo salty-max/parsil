@@ -1,20 +1,36 @@
 ---
-'parsil': patch
+'parsil': minor
 ---
 
-Refactor `everythingUntil` and `everyCharUntil` onto a shared internal driver and lock down their byte-vs-char semantics with an explicit test matrix.
+Refactor `everythingUntil` and `everyCharUntil` onto a shared internal driver, lock down their byte-vs-char semantics with an explicit test matrix, and unify them under a single `mode`-based entry point.
 
-The two parsers were previously composed (`everyCharUntil` mapped on top of `everythingUntil`), conflating byte-level collection with char-level intent. Both now share a `collectUntil(name, step, sentinel)` driver and provide their own per-iteration step:
+**Internal driver**
 
-- `everythingUntil` uses a **byte step** — yields `number[]`, exposing raw bytes (including UTF-8 continuation bytes) regardless of input shape.
-- `everyCharUntil` uses a **char step** — advances by full UTF-8 codepoint width, returns a `string` composed of complete characters.
+The two parsers were previously composed (`everyCharUntil` mapped on top of `everythingUntil`), conflating byte-level collection with char-level intent. Both now share a `collectUntil(name, step, sentinel)` driver and contribute their own per-iteration step:
 
-Behavior table now covered by tests:
+- byte step — yields `number[]`, exposing raw bytes (including UTF-8 continuation bytes) regardless of input shape.
+- char step — advances by full UTF-8 codepoint width, yields a `string` of complete characters.
 
-| Input shape                           | `everythingUntil`                       | `everyCharUntil`           |
-| ------------------------------------- | --------------------------------------- | -------------------------- |
-| `string` (ASCII)                      | `number[]` of byte values               | `string`                   |
-| `string` (multi-byte UTF-8)           | `number[]` including continuation bytes | `string` of complete chars |
-| `ArrayBuffer / TypedArray / DataView` | `number[]` of byte values               | UTF-8 decoded `string`     |
+**Public API: `mode` option**
 
-Public API is unchanged. The only observable shift: a failing `everyCharUntil` now reports `error.parser === 'everyCharUntil'` instead of `'everythingUntil'`, which is more accurate.
+`everythingUntil` now accepts an optional second argument:
+
+```ts
+everythingUntil<T>(parser: Parser<T>, mode?: 'bytes'): Parser<number[]>
+everythingUntil<T>(parser: Parser<T>, mode: 'chars'): Parser<string>
+```
+
+- `'bytes'` (default) — original semantics; returns raw byte values.
+- `'chars'` — UTF-8 aware; returns the consumed prefix as a string.
+
+`everyCharUntil(p)` is preserved as a thin alias for `everythingUntil(p, 'chars')` and is now marked `@deprecated`. It may be removed in a future major.
+
+**Behavior table now backed by tests**
+
+| Input shape                           | `mode: 'bytes'` (default)               | `mode: 'chars'`                           |
+| ------------------------------------- | --------------------------------------- | ----------------------------------------- |
+| `string` (ASCII)                      | `number[]` of byte values               | `string`                                  |
+| `string` (multi-byte UTF-8)           | `number[]` including continuation bytes | `string` of complete chars                |
+| `ArrayBuffer / TypedArray / DataView` | `number[]` of byte values               | UTF-8 decoded `string` (lossy if invalid) |
+
+The 4 existing `tests/parsers/everything-until/` tests pass unchanged.

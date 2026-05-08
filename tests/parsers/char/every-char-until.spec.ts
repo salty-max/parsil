@@ -25,7 +25,7 @@ describe('everyCharUntil', () => {
     expect(result).toStrictEqual({
       isError: true,
       error: expect.objectContaining({
-        parser: 'everyCharUntil',
+        parser: 'everythingUntil',
         index: 6,
         message: 'Unexpected end of input',
       }),
@@ -148,7 +148,7 @@ describe('everyCharUntil', () => {
       const result = parser.run('')
 
       assertIsError(result)
-      expect(result.error.parser).toBe('everyCharUntil')
+      expect(result.error.parser).toBe('everythingUntil')
       expect(result.error.message).toBe('Unexpected end of input')
       expect(result.index).toBe(0)
     })
