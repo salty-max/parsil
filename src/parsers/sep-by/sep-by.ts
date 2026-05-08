@@ -1,4 +1,11 @@
-import { forward, Parser, ParserState, updateResult } from '@parsil/parser'
+import {
+  forward,
+  parseError,
+  Parser,
+  ParserState,
+  updateError,
+  updateResult,
+} from '@parsil/parser'
 
 /**
  * `sepBy` is a parser that matches zero or more occurrences of a value, separated by a given separator.
@@ -27,21 +34,35 @@ export const sepBy =
       let nextState: ParserState<unknown, E> = state
 
       while (true) {
-        const valueState = valueParser.p(nextState)
+        const startIdx = nextState.index
 
-        if (valueState.isError) {
-          break
-        }
+        const valueState = valueParser.p(nextState)
+        if (valueState.isError) break
 
         results.push(valueState.result)
         nextState = valueState
 
         const sepState = sepParser.p(valueState)
-        if (sepState.isError) {
-          break
-        }
-
+        if (sepState.isError) break
         nextState = sepState
+
+        // Infinite-loop guard: if neither value nor separator advanced
+        // the cursor across this whole iteration, the parsers loop
+        // forever on the same position. Surface as a parse failure.
+        if (nextState.index === startIdx) {
+          return updateError(
+            state,
+            // The guard always emits a `ParseError`; if the consumer
+            // pinned a custom `E`, this surfaces the loop as a
+            // ParseError-shaped failure they can `errorMap` at the
+            // boundary. Same pattern as `choice`'s composite failure.
+            parseError(
+              'sepBy',
+              state.index,
+              'value and separator parsers both succeeded without consuming input — infinite loop guard. Ensure at least one of them advances on success.'
+            ) as unknown as E
+          )
+        }
       }
 
       return updateResult(nextState, results)

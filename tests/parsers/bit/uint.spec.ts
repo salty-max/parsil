@@ -16,7 +16,13 @@ describe('uint', () => {
   })
 
   it('should throw an error for invalid input', () => {
-    expect(() => uint(0)).toThrow('int: n must be larger than 0')
-    expect(() => uint(33)).toThrow('int: n must be less than 32')
+    expect(() => uint(0)).toThrow('uint: n must be larger than 0')
+    expect(() => uint(33)).toThrow('uint: n must be less than or equal to 32')
+  })
+
+  it('accepts the boundary value n = 32', () => {
+    // 32-bit unsigned int is a legitimate width; the previous error
+    // message implied a stricter bound. Pin the actual contract.
+    expect(() => uint(32)).not.toThrow()
   })
 })
