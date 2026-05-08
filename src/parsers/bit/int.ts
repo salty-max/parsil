@@ -18,7 +18,7 @@ export const int = (n: number): Parser<number> => {
   }
 
   if (n > 32) {
-    throw new Error(`int: n must be less than 32, but got ${n}`)
+    throw new Error(`int: n must be less than or equal to 32, but got ${n}`)
   }
 
   return sequenceOf(Array.from({ length: n }, () => bit)).map(

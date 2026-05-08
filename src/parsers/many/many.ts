@@ -1,4 +1,10 @@
-import { forward, Parser, updateResult } from '@parsil/parser'
+import {
+  forward,
+  parseError,
+  Parser,
+  updateError,
+  updateResult,
+} from '@parsil/parser'
 
 /**
  * `many` is a parser combinator that applies a given parser zero or more times.
@@ -28,6 +34,20 @@ export const many = function many<T>(parser: Parser<T>): Parser<T[]> {
       const out = parser.p(nextState)
 
       if (!out.isError) {
+        // Guard against infinite loops: if the inner parser succeeds
+        // without consuming input, `many` would loop forever. Surface
+        // it as a parse failure with a clear diagnostic instead.
+        if (out.index === nextState.index) {
+          return updateError(
+            state,
+            parseError(
+              'many',
+              state.index,
+              "Inner parser succeeded without consuming input — infinite loop guard. Wrap with a parser that always advances on success (e.g. swap 'possibly(p)' for 'p', or use 'manyOne' if at least one match is required)."
+            )
+          )
+        }
+
         nextState = out
         results.push(out.result)
 

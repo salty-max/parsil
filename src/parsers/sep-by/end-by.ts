@@ -1,4 +1,11 @@
-import { forward, Parser, ParserState, updateResult } from '@parsil/parser'
+import {
+  forward,
+  parseError,
+  Parser,
+  ParserState,
+  updateError,
+  updateResult,
+} from '@parsil/parser'
 
 /**
  * `endBy(sep)(val)` matches zero or more `val`s where each value MUST
@@ -27,6 +34,8 @@ export const endBy =
       let cursor: ParserState<unknown, E> = state
 
       while (true) {
+        const startIdx = cursor.index
+
         const valueState = valueParser.p(cursor)
         if (valueState.isError) break
 
@@ -38,6 +47,19 @@ export const endBy =
 
         results.push(valueState.result)
         cursor = sepState
+
+        // Infinite-loop guard: see sepBy for rationale.
+        if (cursor.index === startIdx) {
+          return updateError(
+            state,
+            // See sepBy for the cast rationale.
+            parseError(
+              'endBy',
+              state.index,
+              'value and terminator parsers both succeeded without consuming input — infinite loop guard. Ensure at least one of them advances on success.'
+            ) as unknown as E
+          )
+        }
       }
 
       return updateResult(cursor, results)

@@ -1,4 +1,11 @@
-import { forward, Parser, ParserState, updateResult } from '@parsil/parser'
+import {
+  forward,
+  parseError,
+  Parser,
+  ParserState,
+  updateError,
+  updateResult,
+} from '@parsil/parser'
 
 /**
  * `sepEndBy(sep)(val)` matches zero or more `val`s separated by `sep`,
@@ -23,6 +30,8 @@ export const sepEndBy =
       let cursor: ParserState<unknown, E> = state
 
       while (true) {
+        const startIdx = cursor.index
+
         const valueState = valueParser.p(cursor)
         if (valueState.isError) break
         results.push(valueState.result)
@@ -33,6 +42,19 @@ export const sepEndBy =
         cursor = sepState
         // Trailing-separator-allowed: loop continues; if next value
         // doesn't parse, we exit cleanly with whatever we collected.
+
+        // Infinite-loop guard: see sepBy for rationale.
+        if (cursor.index === startIdx) {
+          return updateError(
+            state,
+            // See sepBy for the cast rationale.
+            parseError(
+              'sepEndBy',
+              state.index,
+              'value and separator parsers both succeeded without consuming input — infinite loop guard. Ensure at least one of them advances on success.'
+            ) as unknown as E
+          )
+        }
       }
 
       return updateResult(cursor, results)

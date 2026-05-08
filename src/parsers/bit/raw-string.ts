@@ -24,6 +24,19 @@ export const rawString = (s: string): Parser<number[]> => {
     throw new Error(`rawString: input must be at least 1 character`)
   }
 
+  // ASCII-only: each char must fit in one byte (< 128). Non-ASCII
+  // chars encode to multiple UTF-8 bytes, but `rawString` reads one
+  // byte per char via `uint(8)`. `c.charCodeAt(0)` for U+0080+ would
+  // produce values that don't match any single UTF-8 byte, silently
+  // generating wrong matches. Fail loudly at construction.
+  for (const c of s) {
+    if (c.charCodeAt(0) > 0x7f) {
+      throw new TypeError(
+        `rawString: input must be ASCII-only (each char < 128), but got '${c}' (U+${c.codePointAt(0)?.toString(16).toUpperCase().padStart(4, '0')})`
+      )
+    }
+  }
+
   const bytes = [...s]
     .map((c) => c.charCodeAt(0))
     .map((n) => {

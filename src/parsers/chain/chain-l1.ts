@@ -1,4 +1,10 @@
-import { forward, Parser, updateResult } from '@parsil/parser'
+import {
+  forward,
+  parseError,
+  Parser,
+  updateError,
+  updateResult,
+} from '@parsil/parser'
 
 /**
  * Parse one or more `operand`s separated by `op`, left-associative.
@@ -29,20 +35,36 @@ export const chainl1 = <T>(
     if (state.isError) return forward(state)
 
     const firstState = operand.p(state)
-    if (firstState.isError) return firstState
+    if (firstState.isError) return forward(firstState)
 
     let acc: T = firstState.result
     let cursor = firstState
 
     while (true) {
+      const startIdx = cursor.index
+
       const opState = op.p(cursor)
       if (opState.isError) break
 
       const rightState = operand.p(opState)
-      if (rightState.isError) return rightState
+      if (rightState.isError) return forward(rightState)
 
       acc = opState.result(acc, rightState.result)
       cursor = updateResult(rightState, acc)
+
+      // Infinite-loop guard: if neither op nor operand consumed input
+      // across this iteration, we'd loop forever. Surface it as a
+      // parse failure with a clear diagnostic.
+      if (cursor.index === startIdx) {
+        return updateError(
+          state,
+          parseError(
+            'chainl1',
+            state.index,
+            'operator and operand parsers both succeeded without consuming input — infinite loop guard. Ensure at least one of them advances on success.'
+          )
+        )
+      }
     }
 
     return updateResult(cursor, acc)
