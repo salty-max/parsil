@@ -22,6 +22,6 @@ import { sequenceOf } from '@parsil/parsers/sequence-of'
  *   matching the content between the left and right boundaries.
  */
 export const between =
-  <L, T, R>(leftParser: Parser<L>, rightParser: Parser<R>) =>
-  (contentParser: Parser<T>): Parser<T> =>
+  <L, R>(leftParser: Parser<L>, rightParser: Parser<R>) =>
+  <T>(contentParser: Parser<T>): Parser<T> =>
     sequenceOf([leftParser, contentParser, rightParser]).map(([_, c]) => c as T)

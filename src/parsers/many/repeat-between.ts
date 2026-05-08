@@ -19,8 +19,8 @@ import {
  * @returns A function taking a parser and returning the list parser.
  */
 export const repeatBetween =
-  <T>(min: number, max: number) =>
-  (p: Parser<T>): Parser<T[]> => {
+  (min: number, max: number) =>
+  <T>(p: Parser<T>): Parser<T[]> => {
     if (typeof min !== 'number' || min < 0) {
       throw new TypeError(
         `repeatBetween min must be a non-negative number, but got ${min}`

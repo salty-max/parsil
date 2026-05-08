@@ -14,13 +14,15 @@ import { forward, parseError, Parser, updateResult } from '@parsil/parser'
  * @returns A function that takes a parser and returns a parser applying
  *   it `n` times and collecting the results in an array.
  */
-export function exactly<T, N extends number>(n: N): (p: Parser<T>) => Parser<T[]> {
-  if (typeof n !== "number" || n <= 0) {
-    throw new TypeError(`exactly must be called with a number > 0, but got ${n}`);
+export function exactly<N extends number>(
+  n: N
+): <T>(p: Parser<T>) => Parser<T[]> {
+  if (typeof n !== 'number' || n <= 0) {
+    throw new TypeError(`exactly must be called with a number > 0, but got ${n}`)
   }
 
-  return (parser: Parser<T>) =>
-    new Parser((state) => {
+  return <T>(parser: Parser<T>) =>
+    new Parser<T[]>((state) => {
       if (state.isError) return forward(state);
 
       const results: T[] = [];

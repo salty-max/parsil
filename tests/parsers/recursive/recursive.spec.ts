@@ -1,3 +1,4 @@
+import type { ParseError, Parser } from '@parsil'
 import {
   between,
   char,
@@ -11,12 +12,21 @@ import { describe, expect, it } from 'bun:test'
 
 import { assertIsError, assertIsOk } from '../../util/test-util'
 
+// Recursive grammar: a value is either a digit-string or an array of
+// values. Annotate the mutually-recursive types up-front so TS doesn't
+// trip on the cycle.
+type Value = string | Value[]
+
 describe('recursive', () => {
   const betweenSquareBrackets = between(char('['), char(']'))
   const commaSeparated = sepBy(char(','))
 
-  const value = recursive(() => choice([digits, arrayParser]))
-  const arrayParser = betweenSquareBrackets(commaSeparated(value))
+  const value: Parser<Value, ParseError> = recursive(() =>
+    choice([digits, arrayParser])
+  )
+  const arrayParser: Parser<Value[], ParseError> = betweenSquareBrackets(
+    commaSeparated(value)
+  )
   it('should parse nested arrays correctly', () => {
     const result = arrayParser.run('[1,[2,[3],4],5]')
     assertIsOk(result)
