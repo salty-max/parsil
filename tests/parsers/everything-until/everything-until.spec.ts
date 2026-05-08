@@ -118,4 +118,53 @@ describe('everythingUntil', () => {
       expect(result.index).toBe(0)
     })
   })
+
+  // The mode option (#30) lets a single entry point switch between
+  // byte- and char-level collection. The default ('bytes') preserves
+  // the original semantics; 'chars' yields a UTF-8 string and is the
+  // recommended replacement for the deprecated `everyCharUntil`.
+  describe("mode: 'chars'", () => {
+    it("returns a UTF-8 string when called with mode 'chars'", () => {
+      const parser = everythingUntil(str(','), 'chars')
+      const result = parser.run('日本語,foo')
+
+      assertIsOk(result)
+      expect(result.result).toBe('日本語')
+      expect(result.index).toBe(9)
+    })
+
+    it("works on UTF-8 buffer input with mode 'chars'", () => {
+      const buf = new TextEncoder().encode('héllo,foo')
+      const parser = everythingUntil(str(','), 'chars')
+      const result = parser.run(buf)
+
+      assertIsOk(result)
+      expect(result.result).toBe('héllo')
+      expect(result.index).toBe(6)
+    })
+
+    it("returns '' when marker is at the very start with mode 'chars'", () => {
+      const parser = everythingUntil(str('end'), 'chars')
+      const result = parser.run('end456')
+
+      assertIsOk(result)
+      expect(result.result).toBe('')
+      expect(result.index).toBe(0)
+    })
+
+    it("fails with parser:'everythingUntil' on EOI in mode 'chars'", () => {
+      const parser = everythingUntil(str('end'), 'chars')
+      const result = parser.run('')
+
+      assertIsError(result)
+      expect(result.error.parser).toBe('everythingUntil')
+      expect(result.error.message).toBe('Unexpected end of input')
+    })
+
+    it("explicit mode 'bytes' matches default behavior", () => {
+      const a = everythingUntil(str('end')).run('123end')
+      const b = everythingUntil(str('end'), 'bytes').run('123end')
+      expect(a).toStrictEqual(b)
+    })
+  })
 })
