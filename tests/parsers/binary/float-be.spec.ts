@@ -18,6 +18,8 @@ describe('floatBE', () => {
   })
 
   it('endianness sanity: BE bytes do not decode to LE float', () => {
+    // Round-tripping the same bytes through floatLE must NOT recover the
+    // original value — this pins endianness handling.
     const beBytes = writeFloat32(1.5, false)
     const r = floatLE.run(new DataView(beBytes.buffer))
     assertIsOk(r)
@@ -29,21 +31,5 @@ describe('floatBE', () => {
     const r = floatBE.run(new DataView(buf.buffer))
     assertIsError(r)
     expect(r.error.parser).toBe('floatBE')
-  })
-})
-
-describe('floatLE', () => {
-  it('round-trips a 32-bit float in little-endian order', () => {
-    const bytes = writeFloat32(-2.25, true)
-    const r = floatLE.run(new DataView(bytes.buffer))
-    assertIsOk(r)
-    expect(r.result).toBeCloseTo(-2.25, 5)
-  })
-
-  it('fails on EOI', () => {
-    const buf = new Uint8Array([0x12, 0x34])
-    const r = floatLE.run(new DataView(buf.buffer))
-    assertIsError(r)
-    expect(r.error.parser).toBe('floatLE')
   })
 })

@@ -18,12 +18,12 @@ greeting.run('hello world')
 
 ## Key features
 
-- **40+ parsers and combinators** for character, string, regex, position, repetition, separation, recursion, and binary input.
+- **100+ parsers and combinators** for character, string, regex, position, repetition, separation, recursion, and binary input.
 - **Great TypeScript inference**: `sequenceOf([str('x'), digits])` infers `Parser<[string, string]>`.
 - **UTF-8 aware** character parsers; `withSpan` / `spanMap` carry start/end byte offsets through the parse for AST tooling.
 - **String _and_ binary inputs**: `string`, `ArrayBuffer`, `TypedArray`, `DataView` all work; bit- and byte-level primitives ship in the box.
 - **Two-layer error model**: primitive parsers emit a structured `ParseError` (with `parser`/`index`/`message`/`expected`/`actual`/`context` fields); consumers reshape them with `errorMap` at meaningful boundaries.
-- **Zero runtime dependencies.** ESM-only, ~12 KB minified.
+- **Zero runtime dependencies.** ESM-only, ~24 KB minified.
 
 ### What parsil **isn't**
 
@@ -429,18 +429,29 @@ If you need to drop below the combinator layer (e.g., to optimize a hot path or 
 ```ts
 updateState<T, E, T2>(state: ParserState<T, E>, index: number, result: T2): ParserState<T2, E>
 updateResult<T, E, T2>(state: ParserState<T, E>, result: T2): ParserState<T2, E>
-updateError<T, E, E2>(state: ParserState<T, E>, error: E2): ParserState<T, E2>
+updateError<E2>(state: ParserState<unknown, unknown>, error: E2): ParserState<never, E2>
+forward<E>(state: ParserState<unknown, E>): ParserState<never, E>
 ```
 
 You construct a parser from a state-transformer function:
 
 ```ts
 new Parser((state) => {
-  if (state.isError) return state
+  if (state.isError) return forward(state)
   // ... your transformation
   return updateState(state, newIndex, newResult)
 })
 ```
+
+The state-transformer signature itself is exported as `StateTransformerFn<T, E>` for advanced cases (writing a custom parser builder, generic combinator infrastructure):
+
+```ts
+type StateTransformerFn<T, E = ParseError> = (
+  state: ParserState<unknown, E>
+) => ParserState<T, E>
+```
+
+`forward` is the canonical way to short-circuit on an upstream error: it casts the predecessor state's `result` slot from `unknown` to `never` so the failure branch unifies with the success branch in a parser's return type. `result` is unread when `isError === true`, so the cast is safe — and centralized in one place.
 
 ### UTF-8 utilities
 
