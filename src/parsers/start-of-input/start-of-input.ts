@@ -1,4 +1,11 @@
-import { ParseError, parseError, Parser, updateError } from '@parsil/parser'
+import {
+  forward,
+  ParseError,
+  parseError,
+  Parser,
+  updateError,
+  updateResult,
+} from '@parsil/parser'
 
 /**
  * `startOfInput` succeeds (yielding `null`) if the cursor is at byte 0
@@ -11,7 +18,7 @@ import { ParseError, parseError, Parser, updateError } from '@parsil/parser'
  * @returns A parser that asserts the start of input.
  */
 export const startOfInput = new Parser<null, ParseError>((state) => {
-  if (state.isError) return state
+  if (state.isError) return forward(state)
   const { index } = state
   if (index > 0) {
     return updateError(
@@ -20,5 +27,5 @@ export const startOfInput = new Parser<null, ParseError>((state) => {
     )
   }
 
-  return state
+  return updateResult(state, null)
 })

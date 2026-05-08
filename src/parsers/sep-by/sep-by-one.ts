@@ -1,4 +1,10 @@
-import { parseError, Parser, updateError } from '@parsil/parser'
+import {
+  forward,
+  ParseError,
+  parseError,
+  Parser,
+  updateError,
+} from '@parsil/parser'
 import { sepBy } from '@parsil/parsers/sep-by/sep-by'
 
 /**
@@ -18,13 +24,14 @@ import { sepBy } from '@parsil/parsers/sep-by/sep-by'
  *   value parser fails, returning an array of matched values.
  */
 export const sepByOne =
-  <S, V, E>(sepParser: Parser<S, E>) =>
-  (valueParser: Parser<V, E>): Parser<Array<V>> =>
-    new Parser((state) => {
-      if (state.isError) return state
+  <S, V>(sepParser: Parser<S>) =>
+  (valueParser: Parser<V>): Parser<Array<V>> =>
+    new Parser<Array<V>>((state) => {
+      if (state.isError) return forward(state)
 
-      const out = sepBy(sepParser)(valueParser).p(state)
+      const out = sepBy<S, ParseError>(sepParser)<V>(valueParser).p(state)
 
+      if (out.isError) return forward(out)
       if (out.result.length === 0) {
         return updateError(
           state,

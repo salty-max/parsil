@@ -1,5 +1,6 @@
 import { InputTypes } from '@parsil/input-types'
 import {
+  forward,
   ParseError,
   parseError,
   Parser,
@@ -18,7 +19,7 @@ import {
  * @returns A parser that asserts the end of input.
  */
 export const endOfInput = new Parser<null, ParseError>((state) => {
-  if (state.isError) return state
+  if (state.isError) return forward(state)
   const { dataView, index, inputType } = state
 
   if (index !== dataView.byteLength) {

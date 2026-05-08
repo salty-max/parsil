@@ -34,7 +34,9 @@ export const inContext = <T>(
   label: string,
   p: Parser<T, ParseError>
 ): Parser<T, ParseError> =>
-  p.errorMap(({ error }) => ({
-    ...error,
-    context: [label, ...(error.context ?? [])],
-  }))
+  p.errorMap(
+    ({ error }): ParseError => ({
+      ...error,
+      context: [label, ...(error.context ?? [])],
+    })
+  )

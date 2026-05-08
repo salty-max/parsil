@@ -1,4 +1,5 @@
 import {
+  forward,
   parseError,
   Parser,
   updateError,
@@ -12,7 +13,7 @@ import { bit } from '@parsil/parsers/bit/bit'
  * @returns A parser that reads the next bit and asserts it is 0.
  */
 export const zero: Parser<number> = new Parser((state) => {
-  if (state.isError) return state
+  if (state.isError) return forward(state)
 
   const bitAtIndex = bit.p(state)
 

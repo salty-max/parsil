@@ -1,4 +1,10 @@
-import { parseError, Parser, updateError } from '@parsil/parser'
+import {
+  forward,
+  ParseError,
+  parseError,
+  Parser,
+  updateError,
+} from '@parsil/parser'
 import { sepEndBy } from '@parsil/parsers/sep-by/sep-end-by'
 
 /**
@@ -13,13 +19,13 @@ import { sepEndBy } from '@parsil/parsers/sep-by/sep-end-by'
  * @returns A function taking a value parser and returning the list parser.
  */
 export const sepEndByOne =
-  <S, V, E>(sepParser: Parser<S, E>) =>
-  (valueParser: Parser<V, E>): Parser<V[]> =>
+  <S, V>(sepParser: Parser<S>) =>
+  (valueParser: Parser<V>): Parser<V[]> =>
     new Parser<V[]>((state) => {
-      if (state.isError) return state
+      if (state.isError) return forward(state)
 
-      const out = sepEndBy(sepParser)(valueParser).p(state)
-      if (out.isError) return out
+      const out = sepEndBy<S, ParseError>(sepParser)<V>(valueParser).p(state)
+      if (out.isError) return forward(out)
 
       if (out.result.length === 0) {
         return updateError(

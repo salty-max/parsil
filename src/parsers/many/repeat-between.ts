@@ -1,4 +1,10 @@
-import { parseError, Parser, updateError, updateResult } from '@parsil/parser'
+import {
+  forward,
+  parseError,
+  Parser,
+  updateError,
+  updateResult,
+} from '@parsil/parser'
 
 /**
  * Match `p` between `min` and `max` times (both inclusive). Fails if
@@ -26,7 +32,7 @@ export const repeatBetween =
       )
     }
     return new Parser<T[]>((state) => {
-      if (state.isError) return state
+      if (state.isError) return forward(state)
 
       const results: T[] = []
       let cursor = state

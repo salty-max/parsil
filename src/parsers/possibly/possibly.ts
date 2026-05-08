@@ -1,4 +1,4 @@
-import { Parser, updateResult } from '@parsil/parser'
+import { forward, Parser, updateResult } from '@parsil/parser'
 
 /**
  * `possibly` is a parser combinator that applies a given parser and returns its result,
@@ -16,7 +16,7 @@ import { Parser, updateResult } from '@parsil/parser'
  */
 export const possibly = <T, E>(parser: Parser<T, E>): Parser<T | null, E> => {
   return new Parser((state) => {
-    if (state.isError) return state
+    if (state.isError) return forward(state)
 
     const nextState = parser.p(state)
     return nextState.isError ? updateResult(state, null) : nextState

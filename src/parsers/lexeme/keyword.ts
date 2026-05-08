@@ -1,4 +1,5 @@
 import {
+  forward,
   ParseError,
   parseError,
   Parser,
@@ -53,7 +54,7 @@ export const keyword = (
   const targetByteLen = encoder.encode(target).byteLength
 
   return new Parser<string>((state): ParserState<string, ParseError> => {
-    if (state.isError) return state
+    if (state.isError) return forward(state)
 
     const { dataView, index } = state
 

@@ -1,4 +1,5 @@
 import {
+  forward,
   ParseError,
   parseError,
   Parser,
@@ -23,7 +24,7 @@ import { getNextCharWidth, getUtf8Char } from '@parsil/util'
  */
 export const anyChar: Parser<string> = new Parser(
   (state): ParserState<string, ParseError> => {
-    if (state.isError) return state
+    if (state.isError) return forward(state)
 
     const { index, dataView } = state
     if (index < dataView.byteLength) {

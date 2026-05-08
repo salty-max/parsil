@@ -1,4 +1,4 @@
-import { Parser, ParserState, updateResult } from '@parsil/parser'
+import { forward, Parser, ParserState, updateResult } from '@parsil/parser'
 
 /**
  * `endBy(sep)(val)` matches zero or more `val`s where each value MUST
@@ -18,13 +18,13 @@ import { Parser, ParserState, updateResult } from '@parsil/parser'
  * @returns A function taking a value parser and returning the list parser.
  */
 export const endBy =
-  <S, V, E>(sepParser: Parser<S, E>) =>
-  (valueParser: Parser<V, E>): Parser<V[]> =>
-    new Parser<V[]>((state) => {
-      if (state.isError) return state
+  <S, E>(sepParser: Parser<S, E>) =>
+  <V>(valueParser: Parser<V, E>): Parser<V[], E> =>
+    new Parser<V[], E>((state) => {
+      if (state.isError) return forward(state)
 
       const results: V[] = []
-      let cursor: ParserState<S | V, E> = state
+      let cursor: ParserState<unknown, E> = state
 
       while (true) {
         const valueState = valueParser.p(cursor)
@@ -33,7 +33,7 @@ export const endBy =
         const sepState = sepParser.p(valueState)
         if (sepState.isError) {
           // Value matched but no terminator — fail the whole parser.
-          return sepState
+          return forward(sepState)
         }
 
         results.push(valueState.result)

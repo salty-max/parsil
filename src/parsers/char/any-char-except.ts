@@ -1,4 +1,10 @@
-import { parseError, Parser, updateError, updateState } from '@parsil/parser'
+import {
+  forward,
+  parseError,
+  Parser,
+  updateError,
+  updateState,
+} from '@parsil/parser'
 import { getNextCharWidth, getUtf8Char } from '@parsil/util'
 
 /**
@@ -25,7 +31,7 @@ import { getNextCharWidth, getUtf8Char } from '@parsil/util'
  */
 export const anyCharExcept = <T>(parser: Parser<T>): Parser<string> =>
   new Parser(function anyCharExcept$state(state) {
-    if (state.isError) return state
+    if (state.isError) return forward(state)
     const { dataView, index } = state
 
     const out = parser.p(state)

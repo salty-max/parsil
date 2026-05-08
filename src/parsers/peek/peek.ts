@@ -1,4 +1,5 @@
 import {
+  forward,
   parseError,
   Parser,
   updateError,
@@ -17,7 +18,7 @@ import {
  * @returns A parser that peeks at the next byte in the input.
  */
 export const peek: Parser<number> = new Parser((state) => {
-  if (state.isError) return state
+  if (state.isError) return forward(state)
 
   const { index, dataView } = state
 

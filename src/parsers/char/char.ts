@@ -1,4 +1,5 @@
 import {
+  forward,
   ParseError,
   parseError,
   Parser,
@@ -32,7 +33,7 @@ export const char = (c: string): Parser<string> => {
   }
 
   return new Parser<string>((state): ParserState<string, ParseError> => {
-    if (state.isError) return state
+    if (state.isError) return forward(state)
 
     const { index, dataView } = state
     if (index < dataView.byteLength) {

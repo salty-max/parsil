@@ -1,4 +1,10 @@
-import { parseError, Parser, updateError, updateState } from '@parsil/parser'
+import {
+  forward,
+  parseError,
+  Parser,
+  updateError,
+  updateState,
+} from '@parsil/parser'
 import { getNextCharWidth, getUtf8Char } from '@parsil/util'
 
 const letterRegex = /^[A-Za-z]/
@@ -13,7 +19,7 @@ const letterRegex = /^[A-Za-z]/
  * @returns A parser that matches a single ASCII letter.
  */
 export const letter: Parser<string> = new Parser((state) => {
-  if (state.isError) return state
+  if (state.isError) return forward(state)
 
   const { index, dataView } = state
 

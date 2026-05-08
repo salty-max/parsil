@@ -1,4 +1,4 @@
-import { Parser, updateResult } from '@parsil/parser'
+import { forward, Parser, updateResult } from '@parsil/parser'
 
 /**
  * `many` is a parser combinator that applies a given parser zero or more times.
@@ -18,7 +18,7 @@ import { Parser, updateResult } from '@parsil/parser'
  */
 export const many = function many<T>(parser: Parser<T>): Parser<T[]> {
   return new Parser((state) => {
-    if (state.isError) return state
+    if (state.isError) return forward(state)
 
     const results: Array<T> = []
     let done = false
@@ -29,9 +29,9 @@ export const many = function many<T>(parser: Parser<T>): Parser<T[]> {
 
       if (!out.isError) {
         nextState = out
-        results.push(nextState.result)
+        results.push(out.result)
 
-        if (nextState.index >= nextState.dataView.byteLength) {
+        if (out.index >= out.dataView.byteLength) {
           done = true
         }
       } else {
