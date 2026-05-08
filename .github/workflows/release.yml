@@ -76,7 +76,16 @@ jobs:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
+      # Bump npm to a version that supports OIDC trusted publishing.
+      # Node 22 ships with npm 10.x, which is older than what npm
+      # requires (>= 11.5.1). This is a no-op once Node ships a newer
+      # bundled npm.
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      # Trusted Publishing: npm verifies the workflow's OIDC token
+      # against the configured trusted publisher on npmjs.com. No
+      # secret needed; the `id-token: write` permission above is what
+      # makes the OIDC token available.
       - name: Publish to NPM
         run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
