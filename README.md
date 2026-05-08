@@ -49,7 +49,7 @@ bun add parsil
 > const P = await import('parsil')
 > ```
 
-**Engines**: Node ≥ 20, Bun ≥ 1.1.
+**Engines**: Node ≥ 22, Bun ≥ 1.3.
 
 ---
 

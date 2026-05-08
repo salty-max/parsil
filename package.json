@@ -28,6 +28,7 @@
     "build": "bun run clean && bun run build:esm && bun run build:types",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.tests.json --noEmit",
     "test": "bun test",
+    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "lint": "bunx eslint . --max-warnings 0",
     "lint:fix": "bunx eslint . --fix --max-warnings 0",
     "format": "bunx prettier . -w",
@@ -63,8 +64,8 @@
     "typescript-eslint": "^8.59.2"
   },
   "engines": {
-    "node": ">=20",
-    "bun": ">=1.1"
+    "node": ">=22",
+    "bun": ">=1.3"
   },
   "keywords": [
     "parser",

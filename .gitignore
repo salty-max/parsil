@@ -4,4 +4,7 @@
 # Ignore Node.js runtime artifacts
 node_modules/
 
+# Ignore test coverage reports
+coverage/
+
 .DS_Store
