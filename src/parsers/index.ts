@@ -1,4 +1,5 @@
 export * from '@parsil/parsers/between'
+export * from '@parsil/parsers/binary'
 export * from '@parsil/parsers/bit'
 export * from '@parsil/parsers/chain'
 export * from '@parsil/parsers/char'
